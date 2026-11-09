@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>La mia media scolastica</title>
+<title>Registro Scolastico Avanzato - Ale</title>
 
 <style>
 :root {
@@ -16,7 +16,6 @@
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --danger: #ef4444;
-    --danger-hover: #dc2626;
 }
 
 * {
@@ -34,13 +33,13 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 850px;
     margin: 0 auto;
 }
 
 header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 h1 {
@@ -59,12 +58,24 @@ h1 {
     margin: 0;
 }
 
+/* Selettori Anno / Periodo */
+.top-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.top-bar select, .top-bar button {
+    margin-top: 0;
+}
+
 /* Card Generale */
 .average-card {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.1));
     border: 1px solid rgba(99, 102, 241, 0.3);
     border-radius: 20px;
-    padding: 28px;
+    padding: 24px;
     text-align: center;
     backdrop-filter: blur(12px);
     margin-bottom: 24px;
@@ -114,7 +125,7 @@ h1 {
 }
 
 /* Form Inputs & Buttons */
-input, select {
+input, select, textarea {
     width: 100%;
     padding: 14px 16px;
     border-radius: 12px;
@@ -129,6 +140,24 @@ input, select {
 input:focus, select:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.checkbox-group input {
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+    accent-color: var(--primary);
+    cursor: pointer;
 }
 
 button {
@@ -164,6 +193,17 @@ button {
 
 .btn-danger:hover {
     background: var(--danger);
+    color: white;
+}
+
+.btn-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.btn-warning:hover {
+    background: #f59e0b;
     color: white;
 }
 
@@ -205,32 +245,77 @@ button {
     margin: 10px 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
 }
 
+/* Badge voti colorati */
 .grade-badge {
-    background: rgba(255, 255, 255, 0.08);
-    padding: 4px 10px;
-    border-radius: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* >= 7: Verde Scuro */
+.grade-dark-green {
+    background: rgba(22, 101, 52, 0.4);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #4ade80;
+}
+
+/* Da 6 a < 7: Verde Chiaro */
+.grade-light-green {
+    background: rgba(74, 222, 128, 0.15);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: #86efac;
+}
+
+/* Da 5.5 a < 6: Arancione */
+.grade-orange {
+    background: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    color: #fb923c;
+}
+
+/* Sotto 5.5: Rosso */
+.grade-red {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+/* Peso 0%: Blu */
+.grade-blue {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+}
+
+.lab-tag {
+    font-size: 10px;
+    background: rgba(255,255,255,0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    margin-left: 4px;
 }
 
 .delete-grade-btn {
     background: none;
     border: none;
-    color: #f87171;
+    color: inherit;
+    opacity: 0.7;
     cursor: pointer;
     padding: 0;
-    font-size: 14px;
+    font-size: 16px;
     width: auto;
     margin: 0;
 }
 
 .delete-grade-btn:hover {
-    color: var(--danger);
+    opacity: 1;
 }
 
 .empty-state {
@@ -239,10 +324,12 @@ button {
     padding: 20px 0;
 }
 
-/* Footer reset area */
 .footer-actions {
     text-align: center;
     margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 @media(max-width: 480px) {
@@ -261,125 +348,247 @@ button {
 <div class="container">
 
     <header>
-        <h1>📚 La mia media scolastica</h1>
-        <p class="subtitle">Controllo voti protetto da password</p>
+        <h1>📚 Registro Scolastico Ale</h1>
+        <p class="subtitle" id="currentYearDisplay">Anno Scolastico Corrente</p>
     </header>
+
+    <!-- Barra superiore per Trimestre/Pentamestre e Anno -->
+    <div class="top-bar">
+        <select id="periodSelect" onchange="changePeriod()">
+            <option value="trimestre">📅 Trimestre</option>
+            <option value="pentamestre">📅 Pentamestre</option>
+        </select>
+        <select id="schoolYearSelect" onchange="switchSchoolYear()">
+            <!-- Generato da JS -->
+        </select>
+    </div>
 
     <!-- Media Generale -->
     <div class="average-card">
-        <h2>Media Generale</h2>
+        <h2 id="averageTitle">Media Generale (Trimestre)</h2>
         <div class="big-number" id="generalAverage">--</div>
         <p class="total-grades" id="totalGrades">0 voti inseriti</p>
     </div>
 
-    <!-- Pannello Inserimento Voti (Protetto) -->
+    <!-- Pannello Inserimento Voti -->
     <div class="panel">
-        <h2>➕ Aggiungi un voto</h2>
+        <h2>➕ Aggiungi un Voto</h2>
+
+        <select id="subjectSelect">
+            <option value="" disabled selected>Seleziona una materia...</option>
+            <option value="Inglese">Inglese</option>
+            <option value="Matematica">Matematica</option>
+            <option value="Storia">Storia</option>
+            <option value="Italiano">Italiano</option>
+            <option value="Informatica">Informatica</option>
+            <option value="TPS">TPS</option>
+            <option value="Telecomunicazioni">Telecomunicazioni</option>
+            <option value="Sistemi">Sistemi</option>
+            <option value="Motoria">Motoria</option>
+        </select>
 
         <input
             type="text"
-            id="subjectInput"
-            placeholder="Materia (es. Matematica)"
-            list="subjectSuggestions"
-        >
-        <datalist id="subjectSuggestions"></datalist>
-
-        <input
-            type="number"
             id="gradeInput"
-            placeholder="Inserisci il voto (es. 7.5)"
-            min="1"
-            max="10"
-            step="0.25"
+            placeholder="Voto o voti separati da virgola (es. 7, 8+, 6.5)"
         >
 
-        <button class="btn-primary" onclick="verifyAndAdd()">Aggiungi voto</button>
-        <p class="small">💡 Puoi inserire voti decimali (es. 7.5, 8.25). Per modificare o aggiungere serve la password.</p>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="flex: 1;">
+                <label class="small" style="display:block; margin-bottom:4px;">Peso del voto:</label>
+                <select id="weightSelect">
+                    <option value="1">100% (Pieno)</option>
+                    <option value="0.5">50% (Metà)</option>
+                    <option value="0">0% (Non fa media - Blu)</option>
+                </select>
+            </div>
+            <div style="flex: 1;" id="labContainer" style="display: none;">
+                <label class="small" style="display:block; margin-bottom:4px;">Tipo:</label>
+                <div class="checkbox-group" style="margin-top: 6px;">
+                    <input type="checkbox" id="isLabInput">
+                    <label for="isLabInput">Voto di Laboratorio</label>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="verifyAndAdd()">Aggiungi voto/i</button>
+        <p class="small">💡 Puoi mettere il "+" o "-" (es. 7+ aggiunge +0.25, 7- toglie 0.25). Password richiesta.</p>
     </div>
 
     <!-- Elenco Materie -->
     <div class="panel">
-        <h2>📊 Le mie materie</h2>
+        <h2>📊 Le tue Materie</h2>
         <div id="subjectsList">
-            <div class="empty-state">Non hai ancora inserito voti.</div>
+            <div class="empty-state">Non hai ancora inserito voti in questo periodo.</div>
         </div>
     </div>
 
-    <!-- Reset -->
+    <!-- Azioni / Anno Nuovo -->
     <div class="footer-actions">
-        <button class="btn-danger" onclick="verifyAndReset()" style="width: 100%;">
-            🗑️ Cancella tutti i voti
+        <button class="btn-warning" onclick="startNewYear()">
+            🎓 Vai al prossimo anno scolastico
         </button>
-        <p class="small">I dati vengono salvati in sicurezza sul tuo browser.</p>
+        <button class="btn-danger" onclick="verifyAndReset()">
+            🗑️ Cancella voti del periodo corrente
+        </button>
+        <p class="small">I dati sono salvati in sicurezza nel tuo browser.</p>
     </div>
 
 </div>
 
 <script>
-// IMPOSTA QUI LA TUA PASSWORD SEGRETA
-const SECRET_PASSWORD = "la_mia_password_123"; 
+const SECRET_PASSWORD = "passwordregistroale";
 
-let subjects = JSON.parse(localStorage.getItem("schoolGradesSecure")) || {};
+// Materie che supportano il laboratorio
+const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
+
+// Gestione database multi-anno e multi-periodo
+let db = JSON.parse(localStorage.getItem("schoolRegisterAleV2")) || {
+    currentYear: "2025/2026",
+    years: {
+        "2025/2026": {
+            trimestre: {},
+            pentamestre: {}
+        }
+    }
+};
+
+let currentPeriod = "trimestre";
 
 function save() {
-    localStorage.setItem("schoolGradesSecure", JSON.stringify(subjects));
+    localStorage.setItem("schoolRegisterAleV2", JSON.stringify(db));
 }
 
 function checkPassword() {
     const pwd = prompt("Inserisci la password per autorizzare l'operazione:");
-    if (pwd === null) return false; // Utente ha premuto annulla
+    if (pwd === null) return false;
     if (pwd !== SECRET_PASSWORD) {
-        alert("❌ Password errata! Non puoi modificare i voti.");
+        alert("❌ Password errata!");
         return false;
     }
     return true;
 }
 
-function verifyAndAdd() {
-    if (!checkPassword()) return;
+// Converte stringhe tipo "7+", "7-", "8" in numeri effettivi
+function parseGradeString(str) {
+    str = str.trim();
+    let base = parseFloat(str);
+    if (isNaN(base)) return NaN;
 
-    const subject = document.getElementById("subjectInput").value.trim();
-    const grade = parseFloat(document.getElementById("gradeInput").value);
-
-    if (!subject) {
-        alert("Inserisci una materia!");
-        return;
+    if (str.endsWith("+")) {
+        base += 0.25;
+    } else if (str.endsWith("-")) {
+        base -= 0.25;
     }
+    return base;
+}
 
-    if (isNaN(grade) || grade < 1 || grade > 10) {
-        alert("Inserisci un voto valido compreso tra 1 e 10!");
-        return;
+// Mostra o nasconde la checkbox laboratorio in base alla materia scelta
+document.getElementById("subjectSelect").addEventListener("change", function() {
+    const sub = this.value;
+    const labContainer = document.getElementById("labContainer");
+    if (LAB_SUBJECTS.includes(sub)) {
+        labContainer.style.display = "block";
+    } else {
+        labContainer.style.display = "none";
+        document.getElementById("isLabInput").checked = false;
     }
+});
 
-    const key = Object.keys(subjects).find(
-        s => s.toLowerCase() === subject.toLowerCase()
-    ) || subject;
-
-    if (!subjects[key]) {
-        subjects[key] = [];
-    }
-
-    subjects[key].push(grade);
-    save();
-
-    document.getElementById("subjectInput").value = "";
-    document.getElementById("gradeInput").value = "";
-
+function changePeriod() {
+    currentPeriod = document.getElementById("periodSelect").value;
     render();
 }
 
-function calculateAverage(grades) {
-    if (grades.length === 0) return 0;
-    return grades.reduce((a, b) => a + b, 0) / grades.length;
+function switchSchoolYear() {
+    const selYear = document.getElementById("schoolYearSelect").value;
+    db.currentYear = selYear;
+    save();
+    render();
+}
+
+function verifyAndAdd() {
+    if (!checkPassword()) return;
+
+    const subject = document.getElementById("subjectSelect").value;
+    const rawInput = document.getElementById("gradeInput").value.trim();
+    const weight = parseFloat(document.getElementById("weightSelect").value);
+    const isLab = document.getElementById("isLabInput").checked;
+
+    if (!subject) {
+        alert("Seleziona una materia!");
+        return;
+    }
+    if (!rawInput) {
+        alert("Inserisci almeno un voto!");
+        return;
+    }
+
+    // Supporto separazione con virgola per voti multipli
+    const parts = rawInput.split(",");
+    let addedCount = 0;
+
+    for (let part of parts) {
+        const gradeVal = parseGradeString(part);
+        if (isNaN(gradeVal) || gradeVal < 1 || gradeVal > 10) {
+            alert(`"${part}" non è un voto valido! Usa numeri da 1 a 10 con eventuale + o -.`);
+            return;
+        }
+
+        const yearData = db.years[db.currentYear][currentPeriod];
+        if (!yearData[subject]) {
+            yearData[subject] = [];
+        }
+
+        yearData[subject].push({
+            value: gradeVal,
+            weight: weight,
+            isLab: LAB_SUBJECTS.includes(subject) && isLab
+        });
+        addedCount++;
+    }
+
+    save();
+    document.getElementById("gradeInput").value = "";
+    document.getElementById("isLabInput").checked = false;
+    render();
+}
+
+// Calcolo della media ponderata
+function calculateWeightedAverage(gradeObjs) {
+    let validGrades = gradeObjs.filter(g => g.weight > 0);
+    if (validGrades.length === 0) return { avg: 0, count: 0 };
+
+    let sumProduct = 0;
+    let sumWeights = 0;
+
+    validGrades.forEach(g => {
+        sumProduct += g.value * g.weight;
+        sumWeights += g.weight;
+    });
+
+    return {
+        avg: sumProduct / sumWeights,
+        count: validGrades.length
+    };
+}
+
+function getGradeClass(grade, weight) {
+    if (weight === 0) return "grade-blue";
+    if (grade >= 7) return "grade-dark-green";
+    if (grade >= 6) return "grade-light-green";
+    if (grade >= 5.5) return "grade-orange";
+    return "grade-red";
 }
 
 function deleteGrade(subject, index) {
     if (!checkPassword()) return;
 
-    subjects[subject].splice(index, 1);
+    const yearData = db.years[db.currentYear][currentPeriod];
+    yearData[subject].splice(index, 1);
 
-    if (subjects[subject].length === 0) {
-        delete subjects[subject];
+    if (yearData[subject].length === 0) {
+        delete yearData[subject];
     }
 
     save();
@@ -389,40 +598,77 @@ function deleteGrade(subject, index) {
 function verifyAndReset() {
     if (!checkPassword()) return;
 
-    if (confirm("Vuoi davvero cancellare tutti i voti salvati?")) {
-        subjects = {};
+    if (confirm(`Vuoi davvero cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
+        db.years[db.currentYear][currentPeriod] = {};
         save();
         render();
     }
 }
 
+function startNewYear() {
+    if (!checkPassword()) return;
+
+    let currentYParts = db.currentYear.split("/");
+    let nextStart = parseInt(currentYParts[0]) + 1;
+    let nextEnd = parseInt(currentYParts[1]) + 1;
+    let nextYearName = `${nextStart}/${nextEnd}`;
+
+    if (db.years[nextYearName]) {
+        alert("Questo anno scolastico esiste già!");
+        db.currentYear = nextYearName;
+    } else {
+        if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYearName}?`)) {
+            db.years[nextYearName] = {
+                trimestre: {},
+                pentamestre: {}
+            };
+            db.currentYear = nextYearName;
+            save();
+        } else {
+            return;
+        }
+    }
+    render();
+}
+
 function render() {
+    // Popola select anni scolastici
+    const yearSelect = document.getElementById("schoolYearSelect");
+    yearSelect.innerHTML = "";
+    Object.keys(db.years).forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = "Anno " + y;
+        if (y === db.currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+    });
+
+    document.getElementById("currentYearDisplay").textContent = "Anno Scolastico: " + db.currentYear;
+    document.getElementById("averageTitle").textContent = `Media Generale (${currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1)})`;
+
     const list = document.getElementById("subjectsList");
     const general = document.getElementById("generalAverage");
     const total = document.getElementById("totalGrades");
-    const suggestions = document.getElementById("subjectSuggestions");
 
     list.innerHTML = "";
-    suggestions.innerHTML = "";
 
-    let allGrades = [];
-    const keys = Object.keys(subjects);
+    const yearData = db.years[db.currentYear][currentPeriod];
+    const subjectsKeys = Object.keys(yearData);
 
-    if (keys.length === 0) {
-        list.innerHTML = '<div class="empty-state">Non hai ancora inserito voti.</div>';
+    if (subjectsKeys.length === 0) {
+        list.innerHTML = '<div class="empty-state">Non hai ancora inserito voti in questo periodo.</div>';
         general.textContent = "--";
         total.textContent = "0 voti inseriti";
         return;
     }
 
-    keys.forEach(subject => {
-        const grades = subjects[subject];
-        allGrades = allGrades.concat(grades);
-        const average = calculateAverage(grades);
+    let allPeriodGrades = [];
 
-        const option = document.createElement("option");
-        option.value = subject;
-        suggestions.appendChild(option);
+    subjectsKeys.forEach(subject => {
+        const grades = yearData[subject];
+        allPeriodGrades = allPeriodGrades.concat(grades);
+
+        const { avg, count } = calculateWeightedAverage(grades);
 
         const div = document.createElement("div");
         div.className = "subject-item";
@@ -434,21 +680,30 @@ function render() {
         name.className = "subject-name";
         name.textContent = subject;
 
-        const avg = document.createElement("span");
-        avg.className = "subject-average";
-        avg.textContent = average.toFixed(2);
+        const avgSpan = document.createElement("span");
+        avgSpan.className = "subject-average";
+        avgSpan.textContent = count > 0 ? avg.toFixed(2) : "--";
 
         header.appendChild(name);
-        header.appendChild(avg);
+        header.appendChild(avgSpan);
         div.appendChild(header);
 
         const gradesContainer = document.createElement("div");
         gradesContainer.className = "grades-list";
 
-        grades.forEach((grade, index) => {
+        grades.forEach((g, index) => {
             const badge = document.createElement("span");
-            badge.className = "grade-badge";
-            badge.innerHTML = `${grade} <button class="delete-grade-btn" title="Elimina voto" onclick="deleteGrade('${subject.replace(/'/g, "\\'")}', ${index})">&times;</button>`;
+            badge.className = `grade-badge ${getGradeClass(g.value, g.weight)}`;
+            
+            let labelText = g.value.toString();
+            if (g.weight === 0) labelText += " (0%)";
+            else if (g.weight === 0.5) labelText += " (50%)";
+
+            if (g.isLab) {
+                labelText += ' <span class="lab-tag">Lab</span>';
+            }
+
+            badge.innerHTML = `${labelText} <button class="delete-grade-btn" title="Elimina voto" onclick="deleteGrade('${subject.replace(/'/g, "\\'")}', ${index})">&times;</button>`;
             gradesContainer.appendChild(badge);
         });
 
@@ -456,9 +711,9 @@ function render() {
         list.appendChild(div);
     });
 
-    const generalAverage = calculateAverage(allGrades);
-    general.textContent = allGrades.length ? generalAverage.toFixed(2) : "--";
-    total.textContent = allGrades.length + " voti inseriti in totale";
+    const generalResult = calculateWeightedAverage(allPeriodGrades);
+    general.textContent = generalResult.count > 0 ? generalResult.avg.toFixed(2) : "--";
+    total.textContent = allPeriodGrades.length + " voti inseriti in totale nel " + currentPeriod;
 }
 
 render();
