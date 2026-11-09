@@ -6,142 +6,251 @@
 <title>La mia media scolastica</title>
 
 <style>
+:root {
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --accent: #38bdf8;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+}
+
 * {
     box-sizing: border-box;
+    transition: all 0.2s ease;
 }
 
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #101827;
-    color: white;
-    padding: 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    min-height: 100vh;
+    padding: 24px 16px;
 }
 
 .container {
-    max-width: 850px;
-    margin: auto;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 32px;
 }
 
 h1 {
-    text-align: center;
-    color: #60a5fa;
-    margin-bottom: 8px;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 8px 0;
+    background: linear-gradient(to right, #818cf8, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .subtitle {
-    text-align: center;
-    color: #aab6ca;
-    margin-bottom: 30px;
-}
-
-.panel {
-    background: #1e293b;
-    padding: 22px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-}
-
-h2 {
-    font-size: 20px;
-    margin-top: 0;
-}
-
-input, select, button {
-    width: 100%;
-    padding: 13px;
-    border-radius: 9px;
-    border: none;
+    color: var(--text-muted);
     font-size: 15px;
-    margin-top: 10px;
+    margin: 0;
 }
 
-input, select {
-    background: #334155;
-    color: white;
-}
-
-button {
-    background: #3b82f6;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #2563eb;
-}
-
-.average {
+/* Card Generale */
+.average-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 20px;
+    padding: 28px;
     text-align: center;
-    background: #1d4ed8;
-    padding: 22px;
-    border-radius: 15px;
-    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
-.average h2 {
-    margin-bottom: 5px;
+.average-card h2 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
 }
 
 .big-number {
-    font-size: 42px;
-    font-weight: bold;
+    font-size: 48px;
+    font-weight: 900;
+    margin: 4px 0;
+    color: var(--text-main);
 }
 
-.subject {
-    background: #334155;
-    padding: 16px;
+.total-grades {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Panels */
+.panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(12px);
+    padding: 24px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.2);
+}
+
+.panel h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Form Inputs & Buttons */
+input, select {
+    width: 100%;
+    padding: 14px 16px;
     border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(15, 23, 42, 0.6);
+    color: var(--text-main);
+    font-size: 15px;
+    margin-top: 10px;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+button {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
     margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.small {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+/* Materie */
+.subject-item {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    border-radius: 14px;
+    margin-top: 14px;
 }
 
 .subject-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
 }
 
 .subject-name {
-    font-weight: bold;
-    font-size: 17px;
+    font-weight: 700;
+    font-size: 16px;
 }
 
 .subject-average {
-    color: #60a5fa;
-    font-size: 22px;
-    font-weight: bold;
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 800;
 }
 
-.grades {
-    color: #cbd5e1;
-    margin-top: 10px;
+.grades-list {
+    color: var(--text-muted);
     font-size: 14px;
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.delete {
-    width: auto;
-    background: #dc2626;
-    padding: 7px 12px;
-    margin-top: 12px;
-}
-
-.delete:hover {
-    background: #991b1b;
-}
-
-.small {
-    color: #94a3b8;
+.grade-badge {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 4px 10px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: 13px;
 }
 
-@media(max-width: 500px) {
+.delete-grade-btn {
+    background: none;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    padding: 0;
+    font-size: 14px;
+    width: auto;
+    margin: 0;
+}
+
+.delete-grade-btn:hover {
+    color: var(--danger);
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 20px 0;
+}
+
+/* Footer reset area */
+.footer-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+@media(max-width: 480px) {
     body {
         padding: 12px;
     }
-    .panel {
-        padding: 16px;
+    .big-number {
+        font-size: 40px;
     }
 }
 </style>
@@ -151,79 +260,86 @@ button:hover {
 
 <div class="container">
 
-<h1>📚 La mia media scolastica</h1>
-<p class="subtitle">Tieni sotto controllo tutti i tuoi voti!</p>
+    <header>
+        <h1>📚 La mia media scolastica</h1>
+        <p class="subtitle">Controllo voti protetto da password</p>
+    </header>
 
-<div class="average">
-    <h2>Media generale</h2>
-    <div class="big-number" id="generalAverage">--</div>
-    <p id="totalGrades">0 voti inseriti</p>
-</div>
-
-<div class="panel">
-    <h2>➕ Aggiungi un voto</h2>
-
-    <input
-        type="text"
-        id="subjectInput"
-        placeholder="Materia (es. Matematica)"
-        list="subjectSuggestions"
-    >
-
-    <datalist id="subjectSuggestions"></datalist>
-
-    <input
-        type="number"
-        id="gradeInput"
-        placeholder="Inserisci il voto (es. 7.5)"
-        min="1"
-        max="10"
-        step="0.25"
-    >
-
-    <button onclick="addGrade()">Aggiungi voto</button>
-
-    <p class="small">
-        Puoi inserire anche voti decimali, come 7.5 o 8.25.
-    </p>
-</div>
-
-<div class="panel">
-    <h2>📊 Le mie materie</h2>
-    <div id="subjectsList">
-        <p class="small">Non hai ancora inserito voti.</p>
+    <!-- Media Generale -->
+    <div class="average-card">
+        <h2>Media Generale</h2>
+        <div class="big-number" id="generalAverage">--</div>
+        <p class="total-grades" id="totalGrades">0 voti inseriti</p>
     </div>
-</div>
 
-<div style="text-align:center">
-    <button onclick="resetAll()" style="background:#991b1b">
-        Cancella tutti i voti
-    </button>
-    <p class="small">I tuoi voti vengono salvati automaticamente.</p>
-</div>
+    <!-- Pannello Inserimento Voti (Protetto) -->
+    <div class="panel">
+        <h2>➕ Aggiungi un voto</h2>
+
+        <input
+            type="text"
+            id="subjectInput"
+            placeholder="Materia (es. Matematica)"
+            list="subjectSuggestions"
+        >
+        <datalist id="subjectSuggestions"></datalist>
+
+        <input
+            type="number"
+            id="gradeInput"
+            placeholder="Inserisci il voto (es. 7.5)"
+            min="1"
+            max="10"
+            step="0.25"
+        >
+
+        <button class="btn-primary" onclick="verifyAndAdd()">Aggiungi voto</button>
+        <p class="small">💡 Puoi inserire voti decimali (es. 7.5, 8.25). Per modificare o aggiungere serve la password.</p>
+    </div>
+
+    <!-- Elenco Materie -->
+    <div class="panel">
+        <h2>📊 Le mie materie</h2>
+        <div id="subjectsList">
+            <div class="empty-state">Non hai ancora inserito voti.</div>
+        </div>
+    </div>
+
+    <!-- Reset -->
+    <div class="footer-actions">
+        <button class="btn-danger" onclick="verifyAndReset()" style="width: 100%;">
+            🗑️ Cancella tutti i voti
+        </button>
+        <p class="small">I dati vengono salvati in sicurezza sul tuo browser.</p>
+    </div>
 
 </div>
 
 <script>
+// IMPOSTA QUI LA TUA PASSWORD SEGRETA
+const SECRET_PASSWORD = "la_mia_password_123"; 
 
-let subjects = JSON.parse(
-    localStorage.getItem("schoolGrades")
-) || {};
+let subjects = JSON.parse(localStorage.getItem("schoolGradesSecure")) || {};
 
 function save() {
-    localStorage.setItem(
-        "schoolGrades",
-        JSON.stringify(subjects)
-    );
+    localStorage.setItem("schoolGradesSecure", JSON.stringify(subjects));
 }
 
-function addGrade() {
-    const subject = document.getElementById("subjectInput")
-        .value.trim();
+function checkPassword() {
+    const pwd = prompt("Inserisci la password per autorizzare l'operazione:");
+    if (pwd === null) return false; // Utente ha premuto annulla
+    if (pwd !== SECRET_PASSWORD) {
+        alert("❌ Password errata! Non puoi modificare i voti.");
+        return false;
+    }
+    return true;
+}
 
-    const grade = parseFloat(
-        document.getElementById("gradeInput").value
-    );
+function verifyAndAdd() {
+    if (!checkPassword()) return;
+
+    const subject = document.getElementById("subjectInput").value.trim();
+    const grade = parseFloat(document.getElementById("gradeInput").value);
 
     if (!subject) {
         alert("Inserisci una materia!");
@@ -231,7 +347,7 @@ function addGrade() {
     }
 
     if (isNaN(grade) || grade < 1 || grade > 10) {
-        alert("Inserisci un voto valido da 1 a 10!");
+        alert("Inserisci un voto valido compreso tra 1 e 10!");
         return;
     }
 
@@ -244,7 +360,6 @@ function addGrade() {
     }
 
     subjects[key].push(grade);
-
     save();
 
     document.getElementById("subjectInput").value = "";
@@ -255,12 +370,12 @@ function addGrade() {
 
 function calculateAverage(grades) {
     if (grades.length === 0) return 0;
-
-    return grades.reduce((a, b) => a + b, 0)
-        / grades.length;
+    return grades.reduce((a, b) => a + b, 0) / grades.length;
 }
 
 function deleteGrade(subject, index) {
+    if (!checkPassword()) return;
+
     subjects[subject].splice(index, 1);
 
     if (subjects[subject].length === 0) {
@@ -271,8 +386,10 @@ function deleteGrade(subject, index) {
     render();
 }
 
-function resetAll() {
-    if (confirm("Vuoi davvero cancellare tutti i voti?")) {
+function verifyAndReset() {
+    if (!checkPassword()) return;
+
+    if (confirm("Vuoi davvero cancellare tutti i voti salvati?")) {
         subjects = {};
         save();
         render();
@@ -289,12 +406,18 @@ function render() {
     suggestions.innerHTML = "";
 
     let allGrades = [];
+    const keys = Object.keys(subjects);
 
-    Object.keys(subjects).forEach(subject => {
+    if (keys.length === 0) {
+        list.innerHTML = '<div class="empty-state">Non hai ancora inserito voti.</div>';
+        general.textContent = "--";
+        total.textContent = "0 voti inseriti";
+        return;
+    }
+
+    keys.forEach(subject => {
         const grades = subjects[subject];
-
         allGrades = allGrades.concat(grades);
-
         const average = calculateAverage(grades);
 
         const option = document.createElement("option");
@@ -302,7 +425,7 @@ function render() {
         suggestions.appendChild(option);
 
         const div = document.createElement("div");
-        div.className = "subject";
+        div.className = "subject-item";
 
         const header = document.createElement("div");
         header.className = "subject-header";
@@ -317,42 +440,28 @@ function render() {
 
         header.appendChild(name);
         header.appendChild(avg);
-
-        const gradeText = document.createElement("div");
-        gradeText.className = "grades";
-        gradeText.textContent =
-            "Voti: " + grades.join(" · ");
-
         div.appendChild(header);
-        div.appendChild(gradeText);
+
+        const gradesContainer = document.createElement("div");
+        gradesContainer.className = "grades-list";
 
         grades.forEach((grade, index) => {
-            const btn = document.createElement("button");
-            btn.className = "delete";
-            btn.textContent = "Elimina " + grade;
-            btn.onclick = () => deleteGrade(subject, index);
-            div.appendChild(btn);
+            const badge = document.createElement("span");
+            badge.className = "grade-badge";
+            badge.innerHTML = `${grade} <button class="delete-grade-btn" title="Elimina voto" onclick="deleteGrade('${subject.replace(/'/g, "\\'")}', ${index})">&times;</button>`;
+            gradesContainer.appendChild(badge);
         });
 
+        div.appendChild(gradesContainer);
         list.appendChild(div);
     });
 
     const generalAverage = calculateAverage(allGrades);
-
-    general.textContent = allGrades.length
-        ? generalAverage.toFixed(2)
-        : "--";
-
-    total.textContent =
-        allGrades.length + " voti inseriti";
-
-    if (Object.keys(subjects).length === 0) {
-        list.textContent = "Non hai ancora inserito voti.";
-    }
+    general.textContent = allGrades.length ? generalAverage.toFixed(2) : "--";
+    total.textContent = allGrades.length + " voti inseriti in totale";
 }
 
 render();
-
 </script>
 
 </body>
