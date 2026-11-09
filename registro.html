@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La mia media scolastica</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    max-width: 850px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #60a5fa;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #aab6ca;
+    margin-bottom: 30px;
+}
+
+.panel {
+    background: #1e293b;
+    padding: 22px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 20px;
+    margin-top: 0;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 13px;
+    border-radius: 9px;
+    border: none;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+input, select {
+    background: #334155;
+    color: white;
+}
+
+button {
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2563eb;
+}
+
+.average {
+    text-align: center;
+    background: #1d4ed8;
+    padding: 22px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.average h2 {
+    margin-bottom: 5px;
+}
+
+.big-number {
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.subject {
+    background: #334155;
+    padding: 16px;
+    border-radius: 12px;
+    margin-top: 12px;
+}
+
+.subject-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.subject-name {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.subject-average {
+    color: #60a5fa;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.grades {
+    color: #cbd5e1;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.delete {
+    width: auto;
+    background: #dc2626;
+    padding: 7px 12px;
+    margin-top: 12px;
+}
+
+.delete:hover {
+    background: #991b1b;
+}
+
+.small {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+@media(max-width: 500px) {
+    body {
+        padding: 12px;
+    }
+    .panel {
+        padding: 16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📚 La mia media scolastica</h1>
+<p class="subtitle">Tieni sotto controllo tutti i tuoi voti!</p>
+
+<div class="average">
+    <h2>Media generale</h2>
+    <div class="big-number" id="generalAverage">--</div>
+    <p id="totalGrades">0 voti inseriti</p>
+</div>
+
+<div class="panel">
+    <h2>➕ Aggiungi un voto</h2>
+
+    <input
+        type="text"
+        id="subjectInput"
+        placeholder="Materia (es. Matematica)"
+        list="subjectSuggestions"
+    >
+
+    <datalist id="subjectSuggestions"></datalist>
+
+    <input
+        type="number"
+        id="gradeInput"
+        placeholder="Inserisci il voto (es. 7.5)"
+        min="1"
+        max="10"
+        step="0.25"
+    >
+
+    <button onclick="addGrade()">Aggiungi voto</button>
+
+    <p class="small">
+        Puoi inserire anche voti decimali, come 7.5 o 8.25.
+    </p>
+</div>
+
+<div class="panel">
+    <h2>📊 Le mie materie</h2>
+    <div id="subjectsList">
+        <p class="small">Non hai ancora inserito voti.</p>
+    </div>
+</div>
+
+<div style="text-align:center">
+    <button onclick="resetAll()" style="background:#991b1b">
+        Cancella tutti i voti
+    </button>
+    <p class="small">I tuoi voti vengono salvati automaticamente.</p>
+</div>
+
+</div>
+
+<script>
+
+let subjects = JSON.parse(
+    localStorage.getItem("schoolGrades")
+) || {};
+
+function save() {
+    localStorage.setItem(
+        "schoolGrades",
+        JSON.stringify(subjects)
+    );
+}
+
+function addGrade() {
+    const subject = document.getElementById("subjectInput")
+        .value.trim();
+
+    const grade = parseFloat(
+        document.getElementById("gradeInput").value
+    );
+
+    if (!subject) {
+        alert("Inserisci una materia!");
+        return;
+    }
+
+    if (isNaN(grade) || grade < 1 || grade > 10) {
+        alert("Inserisci un voto valido da 1 a 10!");
+        return;
+    }
+
+    const key = Object.keys(subjects).find(
+        s => s.toLowerCase() === subject.toLowerCase()
+    ) || subject;
+
+    if (!subjects[key]) {
+        subjects[key] = [];
+    }
+
+    subjects[key].push(grade);
+
+    save();
+
+    document.getElementById("subjectInput").value = "";
+    document.getElementById("gradeInput").value = "";
+
+    render();
+}
+
+function calculateAverage(grades) {
+    if (grades.length === 0) return 0;
+
+    return grades.reduce((a, b) => a + b, 0)
+        / grades.length;
+}
+
+function deleteGrade(subject, index) {
+    subjects[subject].splice(index, 1);
+
+    if (subjects[subject].length === 0) {
+        delete subjects[subject];
+    }
+
+    save();
+    render();
+}
+
+function resetAll() {
+    if (confirm("Vuoi davvero cancellare tutti i voti?")) {
+        subjects = {};
+        save();
+        render();
+    }
+}
+
+function render() {
+    const list = document.getElementById("subjectsList");
+    const general = document.getElementById("generalAverage");
+    const total = document.getElementById("totalGrades");
+    const suggestions = document.getElementById("subjectSuggestions");
+
+    list.innerHTML = "";
+    suggestions.innerHTML = "";
+
+    let allGrades = [];
+
+    Object.keys(subjects).forEach(subject => {
+        const grades = subjects[subject];
+
+        allGrades = allGrades.concat(grades);
+
+        const average = calculateAverage(grades);
+
+        const option = document.createElement("option");
+        option.value = subject;
+        suggestions.appendChild(option);
+
+        const div = document.createElement("div");
+        div.className = "subject";
+
+        const header = document.createElement("div");
+        header.className = "subject-header";
+
+        const name = document.createElement("span");
+        name.className = "subject-name";
+        name.textContent = subject;
+
+        const avg = document.createElement("span");
+        avg.className = "subject-average";
+        avg.textContent = average.toFixed(2);
+
+        header.appendChild(name);
+        header.appendChild(avg);
+
+        const gradeText = document.createElement("div");
+        gradeText.className = "grades";
+        gradeText.textContent =
+            "Voti: " + grades.join(" · ");
+
+        div.appendChild(header);
+        div.appendChild(gradeText);
+
+        grades.forEach((grade, index) => {
+            const btn = document.createElement("button");
+            btn.className = "delete";
+            btn.textContent = "Elimina " + grade;
+            btn.onclick = () => deleteGrade(subject, index);
+            div.appendChild(btn);
+        });
+
+        list.appendChild(div);
+    });
+
+    const generalAverage = calculateAverage(allGrades);
+
+    general.textContent = allGrades.length
+        ? generalAverage.toFixed(2)
+        : "--";
+
+    total.textContent =
+        allGrades.length + " voti inseriti";
+
+    if (Object.keys(subjects).length === 0) {
+        list.textContent = "Non hai ancora inserito voti.";
+    }
+}
+
+render();
+
+</script>
+
+</body>
+</html>
