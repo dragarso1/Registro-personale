@@ -3,172 +3,257 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro Scolastico Avanzato - Ale</title>
+<title>Registro Scolastico | Ale</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root {
-    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-    --card-bg: rgba(30, 41, 59, 0.7);
+    --bg-base: #07090e;
+    --bg-gradient: radial-gradient(circle at top right, #1e1b4b 0%, #07090e 60%);
+    --card-bg: rgba(18, 24, 38, 0.75);
     --card-border: rgba(255, 255, 255, 0.08);
     --primary: #6366f1;
     --primary-hover: #4f46e5;
     --accent: #38bdf8;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --danger: #ef4444;
+    --danger: #f43f5e;
+    --danger-hover: #e11d48;
+    --warning: #f59e0b;
+    --success: #10b981;
 }
 
 * {
     box-sizing: border-box;
-    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg-gradient);
+    background-color: var(--bg-base);
+    background-image: var(--bg-gradient);
     color: var(--text-main);
     min-height: 100vh;
     padding: 24px 16px;
+    display: flex;
+    justify-content: center;
 }
 
 .container {
-    max-width: 850px;
+    width: 100%;
+    max-width: 760px;
     margin: 0 auto;
 }
 
+/* Header */
 header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+}
+
+.logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #818cf8;
+    margin-bottom: 12px;
 }
 
 h1 {
     font-size: 28px;
     font-weight: 800;
+    letter-spacing: -0.5px;
     color: var(--text-main);
-    margin: 0 0 8px 0;
-    background: linear-gradient(to right, #818cf8, #38bdf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    margin: 0 0 6px 0;
 }
 
 .subtitle {
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: 14px;
     margin: 0;
 }
 
-/* Selettori Anno / Periodo */
-.top-bar {
-    display: flex;
+/* Top Navigation Bar */
+.top-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
 }
 
-.top-bar select, .top-bar button {
-    margin-top: 0;
+.select-wrapper {
+    position: relative;
 }
 
-/* Card Generale */
-.average-card {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.1));
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    border-radius: 20px;
-    padding: 24px;
-    text-align: center;
+select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    appearance: none;
+    cursor: pointer;
     backdrop-filter: blur(12px);
-    margin-bottom: 24px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    outline: none;
 }
 
-.average-card h2 {
-    margin: 0 0 8px 0;
-    font-size: 16px;
+select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.select-wrapper::after {
+    content: '▾';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* Hero Media Card */
+.hero-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 24px;
+    padding: 32px 20px;
+    text-align: center;
+    backdrop-filter: blur(16px);
+    margin-bottom: 20px;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.hero-title {
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    font-weight: 700;
     color: var(--accent);
+    margin-bottom: 8px;
 }
 
 .big-number {
-    font-size: 48px;
+    font-size: 56px;
     font-weight: 900;
-    margin: 4px 0;
-    color: var(--text-main);
+    letter-spacing: -1px;
+    line-height: 1;
+    margin: 6px 0 10px 0;
+    background: linear-gradient(to bottom right, #fff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .total-grades {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 500;
     margin: 0;
 }
 
-/* Panels */
+/* Glass Panels */
 .panel {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
     padding: 24px;
-    border-radius: 20px;
+    border-radius: 24px;
     margin-bottom: 20px;
-    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
 }
 
-.panel h2 {
-    font-size: 18px;
+.panel-title {
+    font-size: 16px;
     font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 16px;
+    margin: 0 0 16px 0;
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--text-main);
 }
 
-/* Form Inputs & Buttons */
-input, select, textarea {
+/* Inputs & Forms */
+.form-group {
+    margin-bottom: 12px;
+}
+
+input[type="text"] {
     width: 100%;
     padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(15, 23, 42, 0.6);
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    background: rgba(10, 15, 25, 0.6);
     color: var(--text-main);
     font-size: 15px;
-    margin-top: 10px;
     outline: none;
 }
 
-input:focus, select:focus {
+input[type="text"]:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
-.checkbox-group {
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.checkbox-wrapper {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 14px;
-    font-size: 14px;
-    color: var(--text-muted);
+    background: rgba(10, 15, 25, 0.4);
+    border: 1px solid var(--card-border);
+    padding: 0 14px;
+    border-radius: 14px;
+    height: 50px;
     cursor: pointer;
 }
 
-.checkbox-group input {
-    width: 20px;
-    height: 20px;
-    margin-top: 0;
+.checkbox-wrapper input {
+    width: 18px;
+    height: 18px;
     accent-color: var(--primary);
     cursor: pointer;
 }
 
+.checkbox-wrapper label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+/* Buttons */
 button {
     width: 100%;
-    padding: 14px 16px;
-    border-radius: 12px;
+    padding: 14px 20px;
+    border-radius: 14px;
     border: none;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    margin-top: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -178,17 +263,31 @@ button {
 .btn-primary {
     background: var(--primary);
     color: white;
+    margin-top: 14px;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
 }
 
 .btn-primary:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.btn-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.btn-warning:hover {
+    background: var(--warning);
+    color: #000;
 }
 
 .btn-danger {
-    background: rgba(239, 68, 68, 0.15);
-    color: #fca5a5;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(244, 63, 94, 0.12);
+    color: #fda4af;
+    border: 1px solid rgba(244, 63, 94, 0.25);
 }
 
 .btn-danger:hover {
@@ -196,149 +295,111 @@ button {
     color: white;
 }
 
-.btn-warning {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fcd34d;
-    border: 1px solid rgba(245, 158, 11, 0.4);
-}
-
-.btn-warning:hover {
-    background: #f59e0b;
-    color: white;
-}
-
-.small {
+.hint {
     color: var(--text-muted);
-    font-size: 13px;
-    margin-top: 8px;
+    font-size: 12px;
+    margin-top: 10px;
+    text-align: center;
 }
 
-/* Materie */
-.subject-item {
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+/* Subjects List Cards */
+.subject-card {
+    background: rgba(10, 15, 25, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.04);
     padding: 16px;
-    border-radius: 14px;
+    border-radius: 18px;
     margin-top: 14px;
 }
 
-.subject-header {
+.subject-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 12px;
 }
 
-.subject-name {
+.subject-title {
     font-weight: 700;
-    font-size: 16px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.subject-average {
-    color: var(--accent);
-    font-size: 20px;
+.subject-avg {
+    font-size: 18px;
     font-weight: 800;
+    color: var(--accent);
 }
 
-.grades-list {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin: 10px 0;
+/* Grade Badges */
+.grades-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-/* Badge voti colorati */
-.grade-badge {
-    padding: 6px 12px;
-    border-radius: 10px;
+.grade-tag {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 13px;
     font-weight: 700;
 }
 
-/* >= 7: Verde Scuro */
-.grade-dark-green {
-    background: rgba(22, 101, 52, 0.4);
-    border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #4ade80;
-}
+/* Color Rules */
+.grade-dark-green { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }
+.grade-light-green { background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); color: #6ee7b7; }
+.grade-orange { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
+.grade-red { background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; }
+.grade-blue { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; }
 
-/* Da 6 a < 7: Verde Chiaro */
-.grade-light-green {
-    background: rgba(74, 222, 128, 0.15);
-    border: 1px solid rgba(74, 222, 128, 0.3);
-    color: #86efac;
-}
-
-/* Da 5.5 a < 6: Arancione */
-.grade-orange {
-    background: rgba(249, 115, 22, 0.15);
-    border: 1px solid rgba(249, 115, 22, 0.3);
-    color: #fb923c;
-}
-
-/* Sotto 5.5: Rosso */
-.grade-red {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #fca5a5;
-}
-
-/* Peso 0%: Blu */
-.grade-blue {
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #38bdf8;
-}
-
-.lab-tag {
-    font-size: 10px;
+.lab-label {
+    font-size: 9px;
     background: rgba(255,255,255,0.1);
-    padding: 2px 5px;
+    padding: 2px 4px;
     border-radius: 4px;
-    margin-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.delete-grade-btn {
+.delete-badge {
     background: none;
     border: none;
     color: inherit;
-    opacity: 0.7;
+    opacity: 0.6;
     cursor: pointer;
+    font-size: 15px;
     padding: 0;
-    font-size: 16px;
-    width: auto;
-    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.delete-grade-btn:hover {
+.delete-badge:hover {
     opacity: 1;
 }
 
-.empty-state {
+.empty-box {
     text-align: center;
     color: var(--text-muted);
-    padding: 20px 0;
+    padding: 24px 0;
+    font-size: 14px;
 }
 
-.footer-actions {
-    text-align: center;
-    margin-top: 30px;
+.actions-footer {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    margin-top: 24px;
 }
 
 @media(max-width: 480px) {
-    body {
-        padding: 12px;
-    }
-    .big-number {
-        font-size: 40px;
-    }
+    body { padding: 12px 8px; }
+    .big-number { font-size: 46px; }
+    .form-row { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -348,119 +409,110 @@ button {
 <div class="container">
 
     <header>
-        <h1>📚 Registro Scolastico Ale</h1>
-        <p class="subtitle" id="currentYearDisplay">Anno Scolastico Corrente</p>
+        <div class="logo-badge">🛡️ Area Riservata Protetta</div>
+        <h1>Registro Scolastico</h1>
+        <p class="subtitle" id="currentYearDisplay">Anno 2025/2026</p>
     </header>
 
-    <!-- Barra superiore per Trimestre/Pentamestre e Anno -->
-    <div class="top-bar">
-        <select id="periodSelect" onchange="changePeriod()">
-            <option value="trimestre">📅 Trimestre</option>
-            <option value="pentamestre">📅 Pentamestre</option>
-        </select>
-        <select id="schoolYearSelect" onchange="switchSchoolYear()">
-            <!-- Generato da JS -->
-        </select>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div class="select-wrapper">
+            <select id="periodSelect" onchange="changePeriod()">
+                <option value="trimestre">📅 Trimestre</option>
+                <option value="pentamestre">📅 Pentamestre</option>
+            </select>
+        </div>
+        <div class="select-wrapper">
+            <select id="schoolYearSelect" onchange="switchSchoolYear()"></select>
+        </div>
     </div>
 
-    <!-- Media Generale -->
-    <div class="average-card">
-        <h2 id="averageTitle">Media Generale (Trimestre)</h2>
+    <!-- Media Card -->
+    <div class="hero-card">
+        <div class="hero-title" id="averageTitle">Media Generale Trimestre</div>
         <div class="big-number" id="generalAverage">--</div>
-        <p class="total-grades" id="totalGrades">0 voti inseriti</p>
+        <p class="total-grades" id="totalGrades">0 voti registrati</p>
     </div>
 
-    <!-- Pannello Inserimento Voti -->
+    <!-- Pannello Inserimento -->
     <div class="panel">
-        <h2>➕ Aggiungi un Voto</h2>
-
-        <select id="subjectSelect">
-            <option value="" disabled selected>Seleziona una materia...</option>
-            <option value="Inglese">Inglese</option>
-            <option value="Matematica">Matematica</option>
-            <option value="Storia">Storia</option>
-            <option value="Italiano">Italiano</option>
-            <option value="Informatica">Informatica</option>
-            <option value="TPS">TPS</option>
-            <option value="Telecomunicazioni">Telecomunicazioni</option>
-            <option value="Sistemi">Sistemi</option>
-            <option value="Motoria">Motoria</option>
-        </select>
-
-        <input
-            type="text"
-            id="gradeInput"
-            placeholder="Voto o voti separati da virgola (es. 7, 8+, 6.5)"
-        >
-
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <div style="flex: 1;">
-                <label class="small" style="display:block; margin-bottom:4px;">Peso del voto:</label>
-                <select id="weightSelect">
-                    <option value="1">100% (Pieno)</option>
-                    <option value="0.5">50% (Metà)</option>
-                    <option value="0">0% (Non fa media - Blu)</option>
+        <div class="panel-title">✍️ Inserisci Nuovo Voto</div>
+        
+        <div class="form-group">
+            <div class="select-wrapper">
+                <select id="subjectSelect">
+                    <option value="" disabled selected>Seleziona Materia...</option>
+                    <option value="Inglese">Inglese</option>
+                    <option value="Matematica">Matematica</option>
+                    <option value="Storia">Storia</option>
+                    <option value="Italiano">Italiano</option>
+                    <option value="Informatica">Informatica</option>
+                    <option value="TPS">TPS</option>
+                    <option value="Telecomunicazioni">Telecomunicazioni</option>
+                    <option value="Sistemi">Sistemi</option>
+                    <option value="Motoria">Motoria</option>
                 </select>
             </div>
-            <div style="flex: 1;" id="labContainer" style="display: none;">
-                <label class="small" style="display:block; margin-bottom:4px;">Tipo:</label>
-                <div class="checkbox-group" style="margin-top: 6px;">
-                    <input type="checkbox" id="isLabInput">
-                    <label for="isLabInput">Voto di Laboratorio</label>
-                </div>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="gradeInput" placeholder="Voto o voti separati da virgola (es. 7, 8+, 6.5)">
+        </div>
+
+        <div class="form-row">
+            <div class="select-wrapper">
+                <select id="weightSelect">
+                    <option value="1">Peso: 100% (Pieno)</option>
+                    <option value="0.5">Peso: 50% (Metà)</option>
+                    <option value="0">Peso: 0% (Escluso)</option>
+                </select>
+            </div>
+            
+            <div class="checkbox-wrapper" id="labContainer" style="display: none;">
+                <input type="checkbox" id="isLabInput">
+                <label for="isLabInput">Laboratorio</label>
             </div>
         </div>
 
-        <button class="btn-primary" onclick="verifyAndAdd()">Aggiungi voto/i</button>
-        <p class="small">💡 Puoi mettere il "+" o "-" (es. 7+ aggiunge +0.25, 7- toglie 0.25). Password richiesta.</p>
+        <button class="btn-primary" onclick="verifyAndAdd()">➕ Aggiungi al Registro</button>
+        <p class="hint">🔒 Richiede password per modifiche o inserimenti.</p>
     </div>
 
-    <!-- Elenco Materie -->
+    <!-- Lista Materie -->
     <div class="panel">
-        <h2>📊 Le tue Materie</h2>
+        <div class="panel-title">📊 Situazione Materie</div>
         <div id="subjectsList">
-            <div class="empty-state">Non hai ancora inserito voti in questo periodo.</div>
+            <div class="empty-box">Nessun voto inserito in questo periodo.</div>
         </div>
     </div>
 
-    <!-- Azioni / Anno Nuovo -->
-    <div class="footer-actions">
-        <button class="btn-warning" onclick="startNewYear()">
-            🎓 Vai al prossimo anno scolastico
-        </button>
-        <button class="btn-danger" onclick="verifyAndReset()">
-            🗑️ Cancella voti del periodo corrente
-        </button>
-        <p class="small">I dati sono salvati in sicurezza nel tuo browser.</p>
+    <!-- Footer Azioni -->
+    <div class="actions-footer">
+        <button class="btn-warning" onclick="startNewYear()">🎓 Passa al Prossimo Anno Scolastico</button>
+        <button class="btn-danger" onclick="verifyAndReset()">🗑️ Elimina Voti del Periodo Corrente</button>
     </div>
 
 </div>
 
 <script>
 const SECRET_PASSWORD = "passwordregistroale";
-
-// Materie che supportano il laboratorio
 const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
-// Gestione database multi-anno e multi-periodo
-let db = JSON.parse(localStorage.getItem("schoolRegisterAleV2")) || {
+let db = JSON.parse(localStorage.getItem("schoolRegisterAleV3")) || {
     currentYear: "2025/2026",
     years: {
-        "2025/2026": {
-            trimestre: {},
-            pentamestre: {}
-        }
+        "2025/2026": { trimestre: {}, pentamestre: {} }
     }
 };
 
 let currentPeriod = "trimestre";
 
 function save() {
-    localStorage.setItem("schoolRegisterAleV2", JSON.stringify(db));
+    localStorage.setItem("schoolRegisterAleV3", JSON.stringify(db));
 }
 
 function checkPassword() {
-    const pwd = prompt("Inserisci la password per autorizzare l'operazione:");
+    const pwd = prompt("🔐 Inserisci la password segreta:");
     if (pwd === null) return false;
     if (pwd !== SECRET_PASSWORD) {
         alert("❌ Password errata!");
@@ -469,28 +521,22 @@ function checkPassword() {
     return true;
 }
 
-// Converte stringhe tipo "7+", "7-", "8" in numeri effettivi
 function parseGradeString(str) {
     str = str.trim();
     let base = parseFloat(str);
     if (isNaN(base)) return NaN;
-
-    if (str.endsWith("+")) {
-        base += 0.25;
-    } else if (str.endsWith("-")) {
-        base -= 0.25;
-    }
+    if (str.endsWith("+")) base += 0.25;
+    else if (str.endsWith("-")) base -= 0.25;
     return base;
 }
 
-// Mostra o nasconde la checkbox laboratorio in base alla materia scelta
 document.getElementById("subjectSelect").addEventListener("change", function() {
     const sub = this.value;
-    const labContainer = document.getElementById("labContainer");
+    const labBox = document.getElementById("labContainer");
     if (LAB_SUBJECTS.includes(sub)) {
-        labContainer.style.display = "block";
+        labBox.style.display = "flex";
     } else {
-        labContainer.style.display = "none";
+        labBox.style.display = "none";
         document.getElementById("isLabInput").checked = false;
     }
 });
@@ -501,8 +547,7 @@ function changePeriod() {
 }
 
 function switchSchoolYear() {
-    const selYear = document.getElementById("schoolYearSelect").value;
-    db.currentYear = selYear;
+    db.currentYear = document.getElementById("schoolYearSelect").value;
     save();
     render();
 }
@@ -524,28 +569,22 @@ function verifyAndAdd() {
         return;
     }
 
-    // Supporto separazione con virgola per voti multipli
     const parts = rawInput.split(",");
-    let addedCount = 0;
-
     for (let part of parts) {
-        const gradeVal = parseGradeString(part);
-        if (isNaN(gradeVal) || gradeVal < 1 || gradeVal > 10) {
-            alert(`"${part}" non è un voto valido! Usa numeri da 1 a 10 con eventuale + o -.`);
+        const val = parseGradeString(part);
+        if (isNaN(val) || val < 1 || val > 10) {
+            alert(`"${part}" non è valido! Usa numeri da 1 a 10 (es. 7.5 o 8+).`);
             return;
         }
 
-        const yearData = db.years[db.currentYear][currentPeriod];
-        if (!yearData[subject]) {
-            yearData[subject] = [];
-        }
+        const yData = db.years[db.currentYear][currentPeriod];
+        if (!yData[subject]) yData[subject] = [];
 
-        yearData[subject].push({
-            value: gradeVal,
+        yData[subject].push({
+            value: val,
             weight: weight,
             isLab: LAB_SUBJECTS.includes(subject) && isLab
         });
-        addedCount++;
     }
 
     save();
@@ -554,51 +593,37 @@ function verifyAndAdd() {
     render();
 }
 
-// Calcolo della media ponderata
-function calculateWeightedAverage(gradeObjs) {
-    let validGrades = gradeObjs.filter(g => g.weight > 0);
-    if (validGrades.length === 0) return { avg: 0, count: 0 };
-
-    let sumProduct = 0;
-    let sumWeights = 0;
-
-    validGrades.forEach(g => {
-        sumProduct += g.value * g.weight;
-        sumWeights += g.weight;
+function calculateWeightedAverage(grades) {
+    const valid = grades.filter(g => g.weight > 0);
+    if (valid.length === 0) return { avg: 0, count: 0 };
+    let sumProd = 0, sumWeight = 0;
+    valid.forEach(g => {
+        sumProd += g.value * g.weight;
+        sumWeight += g.weight;
     });
-
-    return {
-        avg: sumProduct / sumWeights,
-        count: validGrades.length
-    };
+    return { avg: sumProd / sumWeight, count: valid.length };
 }
 
-function getGradeClass(grade, weight) {
+function getGradeClass(val, weight) {
     if (weight === 0) return "grade-blue";
-    if (grade >= 7) return "grade-dark-green";
-    if (grade >= 6) return "grade-light-green";
-    if (grade >= 5.5) return "grade-orange";
+    if (val >= 7) return "grade-dark-green";
+    if (val >= 6) return "grade-light-green";
+    if (val >= 5.5) return "grade-orange";
     return "grade-red";
 }
 
 function deleteGrade(subject, index) {
     if (!checkPassword()) return;
-
-    const yearData = db.years[db.currentYear][currentPeriod];
-    yearData[subject].splice(index, 1);
-
-    if (yearData[subject].length === 0) {
-        delete yearData[subject];
-    }
-
+    const yData = db.years[db.currentYear][currentPeriod];
+    yData[subject].splice(index, 1);
+    if (yData[subject].length === 0) delete yData[subject];
     save();
     render();
 }
 
 function verifyAndReset() {
     if (!checkPassword()) return;
-
-    if (confirm(`Vuoi davvero cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
+    if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
         db.years[db.currentYear][currentPeriod] = {};
         save();
         render();
@@ -607,113 +632,87 @@ function verifyAndReset() {
 
 function startNewYear() {
     if (!checkPassword()) return;
-
-    let currentYParts = db.currentYear.split("/");
-    let nextStart = parseInt(currentYParts[0]) + 1;
-    let nextEnd = parseInt(currentYParts[1]) + 1;
-    let nextYearName = `${nextStart}/${nextEnd}`;
-
-    if (db.years[nextYearName]) {
-        alert("Questo anno scolastico esiste già!");
-        db.currentYear = nextYearName;
+    const parts = db.currentYear.split("/");
+    const nextYear = `${parseInt(parts[0])+1}/${parseInt(parts[1])+1}`;
+    
+    if (db.years[nextYear]) {
+        db.currentYear = nextYear;
     } else {
-        if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYearName}?`)) {
-            db.years[nextYearName] = {
-                trimestre: {},
-                pentamestre: {}
-            };
-            db.currentYear = nextYearName;
+        if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
+            db.years[nextYear] = { trimestre: {}, pentamestre: {} };
+            db.currentYear = nextYear;
             save();
-        } else {
-            return;
-        }
+        } else return;
     }
     render();
 }
 
 function render() {
-    // Popola select anni scolastici
-    const yearSelect = document.getElementById("schoolYearSelect");
-    yearSelect.innerHTML = "";
+    const yearSel = document.getElementById("schoolYearSelect");
+    yearSel.innerHTML = "";
     Object.keys(db.years).forEach(y => {
         const opt = document.createElement("option");
         opt.value = y;
         opt.textContent = "Anno " + y;
         if (y === db.currentYear) opt.selected = true;
-        yearSelect.appendChild(opt);
+        yearSel.appendChild(opt);
     });
 
     document.getElementById("currentYearDisplay").textContent = "Anno Scolastico: " + db.currentYear;
-    document.getElementById("averageTitle").textContent = `Media Generale (${currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1)})`;
+    document.getElementById("averageTitle").textContent = `Media Generale (${currentPeriod.toUpperCase()})`;
 
     const list = document.getElementById("subjectsList");
     const general = document.getElementById("generalAverage");
     const total = document.getElementById("totalGrades");
 
     list.innerHTML = "";
+    const yData = db.years[db.currentYear][currentPeriod];
+    const subKeys = Object.keys(yData);
 
-    const yearData = db.years[db.currentYear][currentPeriod];
-    const subjectsKeys = Object.keys(yearData);
-
-    if (subjectsKeys.length === 0) {
-        list.innerHTML = '<div class="empty-state">Non hai ancora inserito voti in questo periodo.</div>';
+    if (subKeys.length === 0) {
+        list.innerHTML = '<div class="empty-box">Nessun voto inserito in questo periodo.</div>';
         general.textContent = "--";
-        total.textContent = "0 voti inseriti";
+        total.textContent = "0 voti registrati";
         return;
     }
 
-    let allPeriodGrades = [];
-
-    subjectsKeys.forEach(subject => {
-        const grades = yearData[subject];
-        allPeriodGrades = allPeriodGrades.concat(grades);
-
+    let allGrades = [];
+    subKeys.forEach(sub => {
+        const grades = yData[sub];
+        allGrades = allGrades.concat(grades);
         const { avg, count } = calculateWeightedAverage(grades);
 
-        const div = document.createElement("div");
-        div.className = "subject-item";
+        const card = document.createElement("div");
+        card.className = "subject-card";
 
-        const header = document.createElement("div");
-        header.className = "subject-header";
+        const info = document.createElement("div");
+        info.className = "subject-info";
+        info.innerHTML = `<span class="subject-title">📖 ${sub}</span><span class="subject-avg">${count > 0 ? avg.toFixed(2) : '--'}</span>`;
+        card.appendChild(info);
 
-        const name = document.createElement("span");
-        name.className = "subject-name";
-        name.textContent = subject;
+        const container = document.createElement("div");
+        container.className = "grades-container";
 
-        const avgSpan = document.createElement("span");
-        avgSpan.className = "subject-average";
-        avgSpan.textContent = count > 0 ? avg.toFixed(2) : "--";
-
-        header.appendChild(name);
-        header.appendChild(avgSpan);
-        div.appendChild(header);
-
-        const gradesContainer = document.createElement("div");
-        gradesContainer.className = "grades-list";
-
-        grades.forEach((g, index) => {
-            const badge = document.createElement("span");
-            badge.className = `grade-badge ${getGradeClass(g.value, g.weight)}`;
+        grades.forEach((g, idx) => {
+            const tag = document.createElement("div");
+            tag.className = `grade-tag ${getGradeClass(g.value, g.weight)}`;
             
-            let labelText = g.value.toString();
-            if (g.weight === 0) labelText += " (0%)";
-            else if (g.weight === 0.5) labelText += " (50%)";
+            let label = g.value.toString();
+            if (g.weight === 0) label += " (0%)";
+            else if (g.weight === 0.5) label += " (50%)";
+            if (g.isLab) label += ' <span class="lab-label">Lab</span>';
 
-            if (g.isLab) {
-                labelText += ' <span class="lab-tag">Lab</span>';
-            }
-
-            badge.innerHTML = `${labelText} <button class="delete-grade-btn" title="Elimina voto" onclick="deleteGrade('${subject.replace(/'/g, "\\'")}', ${index})">&times;</button>`;
-            gradesContainer.appendChild(badge);
+            tag.innerHTML = `${label} <button class="delete-badge" onclick="deleteGrade('${sub.replace(/'/g, "\\'")}', ${idx})">&times;</button>`;
+            container.appendChild(tag);
         });
 
-        div.appendChild(gradesContainer);
-        list.appendChild(div);
+        card.appendChild(container);
+        list.appendChild(card);
     });
 
-    const generalResult = calculateWeightedAverage(allPeriodGrades);
-    general.textContent = generalResult.count > 0 ? generalResult.avg.toFixed(2) : "--";
-    total.textContent = allPeriodGrades.length + " voti inseriti in totale nel " + currentPeriod;
+    const genRes = calculateWeightedAverage(allGrades);
+    general.textContent = genRes.count > 0 ? genRes.avg.toFixed(2) : "--";
+    total.textContent = allGrades.length + " voti registrati in totale";
 }
 
 render();
