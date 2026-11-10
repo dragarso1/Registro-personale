@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro Scolastico | Ale</title>
+<title>Registro Scolastico | Sincronizzato con GitHub</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -18,7 +18,6 @@
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --danger: #f43f5e;
-    --danger-hover: #e11d48;
     --warning: #f59e0b;
     --success: #10b981;
 }
@@ -46,10 +45,9 @@ body {
     margin: 0 auto;
 }
 
-/* Header */
 header {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .logo-badge {
@@ -80,7 +78,6 @@ h1 {
     margin: 0;
 }
 
-/* Top Navigation Bar */
 .top-nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -122,7 +119,6 @@ select:focus {
     pointer-events: none;
 }
 
-/* Hero Media Card */
 .hero-card {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%);
     border: 1px solid rgba(99, 102, 241, 0.25);
@@ -170,7 +166,6 @@ select:focus {
     margin: 0;
 }
 
-/* Glass Panels */
 .panel {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -191,7 +186,6 @@ select:focus {
     color: var(--text-main);
 }
 
-/* Inputs & Forms */
 .form-group {
     margin-bottom: 12px;
 }
@@ -245,7 +239,6 @@ input[type="text"]:focus {
     cursor: pointer;
 }
 
-/* Buttons */
 button {
     width: 100%;
     padding: 14px 20px;
@@ -302,7 +295,6 @@ button {
     text-align: center;
 }
 
-/* Subjects List Cards */
 .subject-card {
     background: rgba(10, 15, 25, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.04);
@@ -332,7 +324,6 @@ button {
     color: var(--accent);
 }
 
-/* Grade Badges */
 .grades-container {
     display: flex;
     flex-wrap: wrap;
@@ -349,7 +340,6 @@ button {
     font-weight: 700;
 }
 
-/* Color Rules */
 .grade-dark-green { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }
 .grade-light-green { background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); color: #6ee7b7; }
 .grade-orange { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
@@ -409,12 +399,11 @@ button {
 <div class="container">
 
     <header>
-        <div class="logo-badge">🛡️ Area Riservata Protetta</div>
+        <div class="logo-badge">🐙 Sincronizzato con GitHub Gist</div>
         <h1>Registro Scolastico</h1>
         <p class="subtitle" id="currentYearDisplay">Anno 2025/2026</p>
     </header>
 
-    <!-- Top Navigation -->
     <div class="top-nav">
         <div class="select-wrapper">
             <select id="periodSelect" onchange="changePeriod()">
@@ -427,14 +416,12 @@ button {
         </div>
     </div>
 
-    <!-- Media Card -->
     <div class="hero-card">
         <div class="hero-title" id="averageTitle">Media Generale Trimestre</div>
         <div class="big-number" id="generalAverage">--</div>
         <p class="total-grades" id="totalGrades">0 voti registrati</p>
     </div>
 
-    <!-- Pannello Inserimento -->
     <div class="panel">
         <div class="panel-title">✍️ Inserisci Nuovo Voto</div>
         
@@ -475,10 +462,9 @@ button {
         </div>
 
         <button class="btn-primary" onclick="verifyAndAdd()">➕ Aggiungi al Registro</button>
-        <p class="hint">🔒 Richiede password per modifiche o inserimenti.</p>
+        <p class="hint">🔒 Protetto con password cifrata e cloud GitHub.</p>
     </div>
 
-    <!-- Lista Materie -->
     <div class="panel">
         <div class="panel-title">📊 Situazione Materie</div>
         <div id="subjectsList">
@@ -486,7 +472,6 @@ button {
         </div>
     </div>
 
-    <!-- Footer Azioni -->
     <div class="actions-footer">
         <button class="btn-warning" onclick="startNewYear()">🎓 Passa al Prossimo Anno Scolastico</button>
         <button class="btn-danger" onclick="verifyAndReset()">🗑️ Elimina Voti del Periodo Corrente</button>
@@ -495,10 +480,15 @@ button {
 </div>
 
 <script>
-const SECRET_PASSWORD = "passwordregistroale";
+const SECRET_PASSWORD_HASH = "8b92ea91bc311394c86b2fa9f7435f308ae8938c9ae59fbb581b997c276a1662";
 const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
-let db = JSON.parse(localStorage.getItem("schoolRegisterAleV3")) || {
+// Configurazione GitHub Gist Sync
+// Puoi inserire qui il tuo Gist ID e GitHub Token (oppure l'app li chiederà al primo avvio)
+let GIST_ID = localStorage.getItem("ale_gist_id") || "";
+let GITHUB_TOKEN = localStorage.getItem("ale_github_token") || "";
+
+let db = {
     currentYear: "2025/2026",
     years: {
         "2025/2026": { trimestre: {}, pentamestre: {} }
@@ -507,14 +497,79 @@ let db = JSON.parse(localStorage.getItem("schoolRegisterAleV3")) || {
 
 let currentPeriod = "trimestre";
 
-function save() {
-    localStorage.setItem("schoolRegisterAleV3", JSON.stringify(db));
+async function loadData() {
+    try {
+        if (!GIST_ID || !GITHUB_TOKEN) {
+            setupCloudSync();
+            return;
+        }
+
+        const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            headers: { Authorization: `token ${GITHUB_TOKEN}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.files && data.files["registro_voti.json"]) {
+                db = JSON.parse(data.files["registro_voti.json"].content);
+            }
+        }
+    } catch (e) {
+        console.error("Errore caricamento cloud", e);
+    }
+    render();
 }
 
-function checkPassword() {
+async function saveData() {
+    try {
+        if (!GIST_ID || !GITHUB_TOKEN) {
+            setupCloudSync();
+            return;
+        }
+
+        await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `token ${GITHUB_TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                files: {
+                    "registro_voti.json": {
+                        content: JSON.stringify(db, null, 2)
+                    }
+                }
+            })
+        });
+    } catch (e) {
+        console.error("Errore salvataggio cloud", e);
+    }
+}
+
+function setupCloudSync() {
+    if (!GIST_ID) {
+        GIST_ID = prompt("Inserisci il tuo GitHub Gist ID (lascia vuoto per crearne uno o inseriscine uno esistente):");
+        if (GIST_ID) localStorage.setItem("ale_gist_id", GIST_ID);
+    }
+    if (!GITHUB_TOKEN) {
+        GITHUB_TOKEN = prompt("Inserisci il tuo GitHub Personal Access Token (necessario per sincronizzare PC e telefono):");
+        if (GITHUB_TOKEN) localStorage.setItem("ale_github_token", GITHUB_TOKEN);
+    }
+    if (GIST_ID && GITHUB_TOKEN) loadData();
+}
+
+async function hashPassword(string) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(string);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkPassword() {
     const pwd = prompt("🔐 Inserisci la password segreta:");
     if (pwd === null) return false;
-    if (pwd !== SECRET_PASSWORD) {
+    const hashedInput = await hashPassword(pwd);
+    if (hashedInput !== SECRET_PASSWORD_HASH) {
         alert("❌ Password errata!");
         return false;
     }
@@ -548,12 +603,12 @@ function changePeriod() {
 
 function switchSchoolYear() {
     db.currentYear = document.getElementById("schoolYearSelect").value;
-    save();
+    saveData();
     render();
 }
 
-function verifyAndAdd() {
-    if (!checkPassword()) return;
+async function verifyAndAdd() {
+    if (!await checkPassword()) return;
 
     const subject = document.getElementById("subjectSelect").value;
     const rawInput = document.getElementById("gradeInput").value.trim();
@@ -587,7 +642,7 @@ function verifyAndAdd() {
         });
     }
 
-    save();
+    await saveData();
     document.getElementById("gradeInput").value = "";
     document.getElementById("isLabInput").checked = false;
     render();
@@ -612,26 +667,26 @@ function getGradeClass(val, weight) {
     return "grade-red";
 }
 
-function deleteGrade(subject, index) {
-    if (!checkPassword()) return;
+async function deleteGrade(subject, index) {
+    if (!await checkPassword()) return;
     const yData = db.years[db.currentYear][currentPeriod];
     yData[subject].splice(index, 1);
     if (yData[subject].length === 0) delete yData[subject];
-    save();
+    await saveData();
     render();
 }
 
-function verifyAndReset() {
-    if (!checkPassword()) return;
+async function verifyAndReset() {
+    if (!await checkPassword()) return;
     if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
         db.years[db.currentYear][currentPeriod] = {};
-        save();
+        await saveData();
         render();
     }
 }
 
-function startNewYear() {
-    if (!checkPassword()) return;
+async function startNewYear() {
+    if (!await checkPassword()) return;
     const parts = db.currentYear.split("/");
     const nextYear = `${parseInt(parts[0])+1}/${parseInt(parts[1])+1}`;
     
@@ -641,7 +696,7 @@ function startNewYear() {
         if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
             db.years[nextYear] = { trimestre: {}, pentamestre: {} };
             db.currentYear = nextYear;
-            save();
+            await saveData();
         } else return;
     }
     render();
@@ -715,7 +770,7 @@ function render() {
     total.textContent = allGrades.length + " voti registrati in totale";
 }
 
-render();
+loadData();
 </script>
 
 </body>
