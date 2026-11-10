@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro Scolastico | Sincronizzato con GitHub</title>
+<title>Registro Scolastico | Ale</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -399,7 +399,7 @@ button {
 <div class="container">
 
     <header>
-        <div class="logo-badge">🐙 Sincronizzato con GitHub Gist</div>
+        <div class="logo-badge">🛡️ Registro Scolastico</div>
         <h1>Registro Scolastico</h1>
         <p class="subtitle" id="currentYearDisplay">Anno 2025/2026</p>
     </header>
@@ -438,6 +438,7 @@ button {
                     <option value="Telecomunicazioni">Telecomunicazioni</option>
                     <option value="Sistemi">Sistemi</option>
                     <option value="Motoria">Motoria</option>
+                    <option value="Educazione Civica">Educazione Civica</option>
                 </select>
             </div>
         </div>
@@ -462,7 +463,7 @@ button {
         </div>
 
         <button class="btn-primary" onclick="verifyAndAdd()">➕ Aggiungi al Registro</button>
-        <p class="hint">🔒 Protetto con password cifrata e cloud GitHub.</p>
+        <p class="hint">🔒 Protetto con password cifrata.</p>
     </div>
 
     <div class="panel">
@@ -483,12 +484,7 @@ button {
 const SECRET_PASSWORD_HASH = "8b92ea91bc311394c86b2fa9f7435f308ae8938c9ae59fbb581b997c276a1662";
 const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
-// Configurazione GitHub Gist Sync
-// Puoi inserire qui il tuo Gist ID e GitHub Token (oppure l'app li chiederà al primo avvio)
-let GIST_ID = localStorage.getItem("ale_gist_id") || "";
-let GITHUB_TOKEN = localStorage.getItem("ale_github_token") || "";
-
-let db = {
+let db = JSON.parse(localStorage.getItem("schoolRegisterAleV3")) || {
     currentYear: "2025/2026",
     years: {
         "2025/2026": { trimestre: {}, pentamestre: {} }
@@ -497,64 +493,8 @@ let db = {
 
 let currentPeriod = "trimestre";
 
-async function loadData() {
-    try {
-        if (!GIST_ID || !GITHUB_TOKEN) {
-            setupCloudSync();
-            return;
-        }
-
-        const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            headers: { Authorization: `token ${GITHUB_TOKEN}` }
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.files && data.files["registro_voti.json"]) {
-                db = JSON.parse(data.files["registro_voti.json"].content);
-            }
-        }
-    } catch (e) {
-        console.error("Errore caricamento cloud", e);
-    }
-    render();
-}
-
-async function saveData() {
-    try {
-        if (!GIST_ID || !GITHUB_TOKEN) {
-            setupCloudSync();
-            return;
-        }
-
-        await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            method: "PATCH",
-            headers: {
-                Authorization: `token ${GITHUB_TOKEN}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                files: {
-                    "registro_voti.json": {
-                        content: JSON.stringify(db, null, 2)
-                    }
-                }
-            })
-        });
-    } catch (e) {
-        console.error("Errore salvataggio cloud", e);
-    }
-}
-
-function setupCloudSync() {
-    if (!GIST_ID) {
-        GIST_ID = prompt("Inserisci il tuo GitHub Gist ID (lascia vuoto per crearne uno o inseriscine uno esistente):");
-        if (GIST_ID) localStorage.setItem("ale_gist_id", GIST_ID);
-    }
-    if (!GITHUB_TOKEN) {
-        GITHUB_TOKEN = prompt("Inserisci il tuo GitHub Personal Access Token (necessario per sincronizzare PC e telefono):");
-        if (GITHUB_TOKEN) localStorage.setItem("ale_github_token", GITHUB_TOKEN);
-    }
-    if (GIST_ID && GITHUB_TOKEN) loadData();
+function save() {
+    localStorage.setItem("schoolRegisterAleV3", JSON.stringify(db));
 }
 
 async function hashPassword(string) {
@@ -603,7 +543,7 @@ function changePeriod() {
 
 function switchSchoolYear() {
     db.currentYear = document.getElementById("schoolYearSelect").value;
-    saveData();
+    save();
     render();
 }
 
@@ -642,7 +582,7 @@ async function verifyAndAdd() {
         });
     }
 
-    await saveData();
+    save();
     document.getElementById("gradeInput").value = "";
     document.getElementById("isLabInput").checked = false;
     render();
@@ -672,7 +612,7 @@ async function deleteGrade(subject, index) {
     const yData = db.years[db.currentYear][currentPeriod];
     yData[subject].splice(index, 1);
     if (yData[subject].length === 0) delete yData[subject];
-    await saveData();
+    save();
     render();
 }
 
@@ -680,7 +620,7 @@ async function verifyAndReset() {
     if (!await checkPassword()) return;
     if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
         db.years[db.currentYear][currentPeriod] = {};
-        await saveData();
+        save();
         render();
     }
 }
@@ -696,7 +636,7 @@ async function startNewYear() {
         if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
             db.years[nextYear] = { trimestre: {}, pentamestre: {} };
             db.currentYear = nextYear;
-            await saveData();
+            save();
         } else return;
     }
     render();
@@ -770,7 +710,7 @@ function render() {
     total.textContent = allGrades.length + " voti registrati in totale";
 }
 
-loadData();
+render();
 </script>
 
 </body>
