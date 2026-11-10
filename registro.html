@@ -3,8 +3,280 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro Scolastico | Ale</title>
+<title>Registro Scolastico | Ale Cloud</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnDGyBXquFKzoH7m2pXMta3Ywbc6af_lw",
+    authDomain: "registro-b3d67.firebaseapp.com",
+    projectId: "registro-b3d67",
+    storageBucket: "registro-b3d67.firebasestorage.app",
+    messagingSenderId: "212712192143",
+    appId: "1:212712192143:web:56c78b607e8745e14f58fa",
+    measurementId: "G-G4KTEF2BYZ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const dbCloud = getFirestore(app);
+
+  const SECRET_PASSWORD_HASH = "8b92ea91bc311394c86b2fa9f7435f308ae8938c9ae59fbb581b997c276a1662";
+  const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
+
+  let db = {
+      currentYear: "2025/2026",
+      years: {
+          "2025/2026": { trimestre: {}, pentamestre: {} }
+      }
+  };
+
+  let currentPeriod = "trimestre";
+
+  window.loadDataFromFirebase = async function() {
+      try {
+          const docRef = doc(dbCloud, "registro_data", "dati_voti");
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+              db = docSnap.data();
+          }
+      } catch (e) {
+          console.error("Errore caricamento Firebase:", e);
+      }
+      render();
+  };
+
+  window.saveDataToFirebase = async function() {
+      try {
+          const docRef = doc(dbCloud, "registro_data", "dati_voti");
+          await setDoc(docRef, db);
+      } catch (e) {
+          console.error("Errore salvataggio Firebase:", e);
+      }
+  };
+
+  window.hashPassword = async function(string) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(string);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  window.checkPassword = async function() {
+      const pwd = prompt("🔐 Inserisci la password segreta:");
+      if (pwd === null) return false;
+      const hashedInput = await window.hashPassword(pwd);
+      if (hashedInput !== SECRET_PASSWORD_HASH) {
+          alert("❌ Password errata!");
+          return false;
+      }
+      return true;
+  }
+
+  window.parseGradeString = function(str) {
+      str = str.trim();
+      let base = parseFloat(str);
+      if (isNaN(base)) return NaN;
+      if (str.endsWith("+")) base += 0.25;
+      else if (str.endsWith("-")) base -= 0.25;
+      return base;
+  }
+
+  window.changePeriod = function() {
+      currentPeriod = document.getElementById("periodSelect").value;
+      render();
+  }
+
+  window.switchSchoolYear = function() {
+      db.currentYear = document.getElementById("schoolYearSelect").value;
+      window.saveDataToFirebase();
+      render();
+  }
+
+  window.verifyAndAdd = async function() {
+      if (!await window.checkPassword()) return;
+
+      const subject = document.getElementById("subjectSelect").value;
+      const rawInput = document.getElementById("gradeInput").value.trim();
+      const weight = parseFloat(document.getElementById("weightSelect").value);
+      const isLab = document.getElementById("isLabInput").checked;
+
+      if (!subject) {
+          alert("Seleziona una materia!");
+          return;
+      }
+      if (!rawInput) {
+          alert("Inserisci almeno un voto!");
+          return;
+      }
+
+      const parts = rawInput.split(",");
+      for (let part of parts) {
+          const val = window.parseGradeString(part);
+          if (isNaN(val) || val < 1 || val > 10) {
+              alert(`"${part}" non è valido! Usa numeri da 1 a 10 (es. 7.5 o 8+).`);
+              return;
+          }
+
+          const yData = db.years[db.currentYear][currentPeriod];
+          if (!yData[subject]) yData[subject] = [];
+
+          yData[subject].push({
+              value: val,
+              weight: weight,
+              isLab: LAB_SUBJECTS.includes(subject) && isLab
+          });
+      }
+
+      await window.saveDataToFirebase();
+      document.getElementById("gradeInput").value = "";
+      document.getElementById("isLabInput").checked = false;
+      render();
+  }
+
+  window.calculateWeightedAverage = function(grades) {
+      const valid = grades.filter(g => g.weight > 0);
+      if (valid.length === 0) return { avg: 0, count: 0 };
+      let sumProd = 0, sumWeight = 0;
+      valid.forEach(g => {
+          sumProd += g.value * g.weight;
+          sumWeight += g.weight;
+      });
+      return { avg: sumProd / sumWeight, count: valid.length };
+  }
+
+  window.getGradeClass = function(val, weight) {
+      if (weight === 0) return "grade-blue";
+      if (val >= 7) return "grade-dark-green";
+      if (val >= 6) return "grade-light-green";
+      if (val >= 5.5) return "grade-orange";
+      return "grade-red";
+  }
+
+  window.deleteGrade = async function(subject, index) {
+      if (!await window.checkPassword()) return;
+      const yData = db.years[db.currentYear][currentPeriod];
+      yData[subject].splice(index, 1);
+      if (yData[subject].length === 0) delete yData[subject];
+      await window.saveDataToFirebase();
+      render();
+  }
+
+  window.verifyAndReset = async function() {
+      if (!await window.checkPassword()) return;
+      if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
+          db.years[db.currentYear][currentPeriod] = {};
+          await window.saveDataToFirebase();
+          render();
+      }
+  }
+
+  window.startNewYear = async function() {
+      if (!await window.checkPassword()) return;
+      const parts = db.currentYear.split("/");
+      const nextYear = `${parseInt(parts[0])+1}/${parseInt(parts[1])+1}`;
+      
+      if (db.years[nextYear]) {
+          db.currentYear = nextYear;
+      } else {
+          if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
+              db.years[nextYear] = { trimestre: {}, pentamestre: {} };
+              db.currentYear = nextYear;
+              await window.saveDataToFirebase();
+          } else return;
+      }
+      render();
+  }
+
+  window.render = function() {
+      const yearSel = document.getElementById("schoolYearSelect");
+      if (!yearSel) return;
+      yearSel.innerHTML = "";
+      Object.keys(db.years).forEach(y => {
+          const opt = document.createElement("option");
+          opt.value = y;
+          opt.textContent = "Anno " + y;
+          if (y === db.currentYear) opt.selected = true;
+          yearSel.appendChild(opt);
+      });
+
+      document.getElementById("currentYearDisplay").textContent = "Anno Scolastico: " + db.currentYear;
+      document.getElementById("averageTitle").textContent = `Media Generale (${currentPeriod.toUpperCase()})`;
+
+      const list = document.getElementById("subjectsList");
+      const general = document.getElementById("generalAverage");
+      const total = document.getElementById("totalGrades");
+
+      list.innerHTML = "";
+      const yData = db.years[db.currentYear][currentPeriod];
+      const subKeys = Object.keys(yData);
+
+      if (subKeys.length === 0) {
+          list.innerHTML = '<div class="empty-box">Nessun voto inserito in questo periodo.</div>';
+          general.textContent = "--";
+          total.textContent = "0 voti registrati";
+          return;
+      }
+
+      let allGrades = [];
+      subKeys.forEach(sub => {
+          const grades = yData[sub];
+          allGrades = allGrades.concat(grades);
+          const { avg, count } = window.calculateWeightedAverage(grades);
+
+          const card = document.createElement("div");
+          card.className = "subject-card";
+
+          const info = document.createElement("div");
+          info.className = "subject-info";
+          info.innerHTML = `<span class="subject-title">📖 ${sub}</span><span class="subject-avg">${count > 0 ? avg.toFixed(2) : '--'}</span>`;
+          card.appendChild(info);
+
+          const container = document.createElement("div");
+          container.className = "grades-container";
+
+          grades.forEach((g, idx) => {
+              const tag = document.createElement("div");
+              tag.className = `grade-tag ${window.getGradeClass(g.value, g.weight)}`;
+              
+              let label = g.value.toString();
+              if (g.weight === 0) label += " (0%)";
+              else if (g.weight === 0.5) label += " (50%)";
+              if (g.isLab) label += ' <span class="lab-label">Lab</span>';
+
+              tag.innerHTML = `${label} <button class="delete-badge" onclick="deleteGrade('${sub.replace(/'/g, "\\'")}', ${idx})">&times;</button>`;
+              container.appendChild(tag);
+          });
+
+          card.appendChild(container);
+          list.appendChild(card);
+      });
+
+      const genRes = window.calculateWeightedAverage(allGrades);
+      general.textContent = genRes.count > 0 ? genRes.avg.toFixed(2) : "--";
+      total.textContent = allGrades.length + " voti registrati in totale";
+  }
+
+  // Avvia il caricamento dati all'apertura
+  window.addEventListener("DOMContentLoaded", () => {
+      window.loadDataFromFirebase();
+      
+      document.getElementById("subjectSelect").addEventListener("change", function() {
+          const sub = this.value;
+          const labBox = document.getElementById("labContainer");
+          if (LAB_SUBJECTS.includes(sub)) {
+              labBox.style.display = "flex";
+          } else {
+              labBox.style.display = "none";
+              document.getElementById("isLabInput").checked = false;
+          }
+      });
+  });
+</script>
 
 <style>
 :root {
@@ -54,13 +326,13 @@ header {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(99, 102, 241, 0.12);
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
     padding: 6px 14px;
     border-radius: 50px;
     font-size: 13px;
     font-weight: 600;
-    color: #818cf8;
+    color: #34d399;
     margin-bottom: 12px;
 }
 
@@ -399,7 +671,7 @@ button {
 <div class="container">
 
     <header>
-        <div class="logo-badge">🛡️ Registro Scolastico</div>
+        <div class="logo-badge">☁️ Firebase Cloud Connesso</div>
         <h1>Registro Scolastico</h1>
         <p class="subtitle" id="currentYearDisplay">Anno 2025/2026</p>
     </header>
@@ -469,7 +741,7 @@ button {
     <div class="panel">
         <div class="panel-title">📊 Situazione Materie</div>
         <div id="subjectsList">
-            <div class="empty-box">Nessun voto inserito in questo periodo.</div>
+            <div class="empty-box">Caricamento voti dal Cloud...</div>
         </div>
     </div>
 
@@ -479,239 +751,6 @@ button {
     </div>
 
 </div>
-
-<script>
-const SECRET_PASSWORD_HASH = "8b92ea91bc311394c86b2fa9f7435f308ae8938c9ae59fbb581b997c276a1662";
-const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
-
-let db = JSON.parse(localStorage.getItem("schoolRegisterAleV3")) || {
-    currentYear: "2025/2026",
-    years: {
-        "2025/2026": { trimestre: {}, pentamestre: {} }
-    }
-};
-
-let currentPeriod = "trimestre";
-
-function save() {
-    localStorage.setItem("schoolRegisterAleV3", JSON.stringify(db));
-}
-
-async function hashPassword(string) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(string);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function checkPassword() {
-    const pwd = prompt("🔐 Inserisci la password segreta:");
-    if (pwd === null) return false;
-    const hashedInput = await hashPassword(pwd);
-    if (hashedInput !== SECRET_PASSWORD_HASH) {
-        alert("❌ Password errata!");
-        return false;
-    }
-    return true;
-}
-
-function parseGradeString(str) {
-    str = str.trim();
-    let base = parseFloat(str);
-    if (isNaN(base)) return NaN;
-    if (str.endsWith("+")) base += 0.25;
-    else if (str.endsWith("-")) base -= 0.25;
-    return base;
-}
-
-document.getElementById("subjectSelect").addEventListener("change", function() {
-    const sub = this.value;
-    const labBox = document.getElementById("labContainer");
-    if (LAB_SUBJECTS.includes(sub)) {
-        labBox.style.display = "flex";
-    } else {
-        labBox.style.display = "none";
-        document.getElementById("isLabInput").checked = false;
-    }
-});
-
-function changePeriod() {
-    currentPeriod = document.getElementById("periodSelect").value;
-    render();
-}
-
-function switchSchoolYear() {
-    db.currentYear = document.getElementById("schoolYearSelect").value;
-    save();
-    render();
-}
-
-async function verifyAndAdd() {
-    if (!await checkPassword()) return;
-
-    const subject = document.getElementById("subjectSelect").value;
-    const rawInput = document.getElementById("gradeInput").value.trim();
-    const weight = parseFloat(document.getElementById("weightSelect").value);
-    const isLab = document.getElementById("isLabInput").checked;
-
-    if (!subject) {
-        alert("Seleziona una materia!");
-        return;
-    }
-    if (!rawInput) {
-        alert("Inserisci almeno un voto!");
-        return;
-    }
-
-    const parts = rawInput.split(",");
-    for (let part of parts) {
-        const val = parseGradeString(part);
-        if (isNaN(val) || val < 1 || val > 10) {
-            alert(`"${part}" non è valido! Usa numeri da 1 a 10 (es. 7.5 o 8+).`);
-            return;
-        }
-
-        const yData = db.years[db.currentYear][currentPeriod];
-        if (!yData[subject]) yData[subject] = [];
-
-        yData[subject].push({
-            value: val,
-            weight: weight,
-            isLab: LAB_SUBJECTS.includes(subject) && isLab
-        });
-    }
-
-    save();
-    document.getElementById("gradeInput").value = "";
-    document.getElementById("isLabInput").checked = false;
-    render();
-}
-
-function calculateWeightedAverage(grades) {
-    const valid = grades.filter(g => g.weight > 0);
-    if (valid.length === 0) return { avg: 0, count: 0 };
-    let sumProd = 0, sumWeight = 0;
-    valid.forEach(g => {
-        sumProd += g.value * g.weight;
-        sumWeight += g.weight;
-    });
-    return { avg: sumProd / sumWeight, count: valid.length };
-}
-
-function getGradeClass(val, weight) {
-    if (weight === 0) return "grade-blue";
-    if (val >= 7) return "grade-dark-green";
-    if (val >= 6) return "grade-light-green";
-    if (val >= 5.5) return "grade-orange";
-    return "grade-red";
-}
-
-async function deleteGrade(subject, index) {
-    if (!await checkPassword()) return;
-    const yData = db.years[db.currentYear][currentPeriod];
-    yData[subject].splice(index, 1);
-    if (yData[subject].length === 0) delete yData[subject];
-    save();
-    render();
-}
-
-async function verifyAndReset() {
-    if (!await checkPassword()) return;
-    if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
-        db.years[db.currentYear][currentPeriod] = {};
-        save();
-        render();
-    }
-}
-
-async function startNewYear() {
-    if (!await checkPassword()) return;
-    const parts = db.currentYear.split("/");
-    const nextYear = `${parseInt(parts[0])+1}/${parseInt(parts[1])+1}`;
-    
-    if (db.years[nextYear]) {
-        db.currentYear = nextYear;
-    } else {
-        if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
-            db.years[nextYear] = { trimestre: {}, pentamestre: {} };
-            db.currentYear = nextYear;
-            save();
-        } else return;
-    }
-    render();
-}
-
-function render() {
-    const yearSel = document.getElementById("schoolYearSelect");
-    yearSel.innerHTML = "";
-    Object.keys(db.years).forEach(y => {
-        const opt = document.createElement("option");
-        opt.value = y;
-        opt.textContent = "Anno " + y;
-        if (y === db.currentYear) opt.selected = true;
-        yearSel.appendChild(opt);
-    });
-
-    document.getElementById("currentYearDisplay").textContent = "Anno Scolastico: " + db.currentYear;
-    document.getElementById("averageTitle").textContent = `Media Generale (${currentPeriod.toUpperCase()})`;
-
-    const list = document.getElementById("subjectsList");
-    const general = document.getElementById("generalAverage");
-    const total = document.getElementById("totalGrades");
-
-    list.innerHTML = "";
-    const yData = db.years[db.currentYear][currentPeriod];
-    const subKeys = Object.keys(yData);
-
-    if (subKeys.length === 0) {
-        list.innerHTML = '<div class="empty-box">Nessun voto inserito in questo periodo.</div>';
-        general.textContent = "--";
-        total.textContent = "0 voti registrati";
-        return;
-    }
-
-    let allGrades = [];
-    subKeys.forEach(sub => {
-        const grades = yData[sub];
-        allGrades = allGrades.concat(grades);
-        const { avg, count } = calculateWeightedAverage(grades);
-
-        const card = document.createElement("div");
-        card.className = "subject-card";
-
-        const info = document.createElement("div");
-        info.className = "subject-info";
-        info.innerHTML = `<span class="subject-title">📖 ${sub}</span><span class="subject-avg">${count > 0 ? avg.toFixed(2) : '--'}</span>`;
-        card.appendChild(info);
-
-        const container = document.createElement("div");
-        container.className = "grades-container";
-
-        grades.forEach((g, idx) => {
-            const tag = document.createElement("div");
-            tag.className = `grade-tag ${getGradeClass(g.value, g.weight)}`;
-            
-            let label = g.value.toString();
-            if (g.weight === 0) label += " (0%)";
-            else if (g.weight === 0.5) label += " (50%)";
-            if (g.isLab) label += ' <span class="lab-label">Lab</span>';
-
-            tag.innerHTML = `${label} <button class="delete-badge" onclick="deleteGrade('${sub.replace(/'/g, "\\'")}', ${idx})">&times;</button>`;
-            container.appendChild(tag);
-        });
-
-        card.appendChild(container);
-        list.appendChild(card);
-    });
-
-    const genRes = calculateWeightedAverage(allGrades);
-    general.textContent = genRes.count > 0 ? genRes.avg.toFixed(2) : "--";
-    total.textContent = allGrades.length + " voti registrati in totale";
-}
-
-render();
-</script>
 
 </body>
 </html>
