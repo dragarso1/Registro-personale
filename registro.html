@@ -24,7 +24,7 @@
   const app = initializeApp(firebaseConfig);
   const dbCloud = getFirestore(app);
 
-  const SECRET_PASSWORD_HASH = "8b92ea91bc311394c86b2fa9f7435f308ae8938c9ae59fbb581b997c276a1662";
+  const SECRET_PASSWORD_HASH = "b7a3560737f2a1b1897d287042afb7931f6e2ec9079dd21ff3c43425cb0aeec2";
   const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
   let db = {
@@ -261,7 +261,6 @@
       total.textContent = allGrades.length + " voti registrati in totale";
   }
 
-  // Avvia il caricamento dati all'apertura
   window.addEventListener("DOMContentLoaded", () => {
       window.loadDataFromFirebase();
       
