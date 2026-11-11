@@ -24,7 +24,6 @@
   const app = initializeApp(firebaseConfig);
   const dbCloud = getFirestore(app);
 
-  // Hash SHA-256 impostato da te
   const SECRET_PASSWORD_HASH = "11588f32407ab228c939d760436ca3838c614388383d1761ff1ee51a2cdd2e91";
   const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
@@ -38,7 +37,7 @@
   let currentPeriod = "trimestre";
   let pendingAction = null;
 
-  window.loadDataFromFirebase = async function() {
+  async function loadData() {
       try {
           const docRef = doc(dbCloud, "registro_data", "dati_voti");
           const docSnap = await getDoc(docRef);
@@ -46,29 +45,32 @@
               db = docSnap.data();
           }
       } catch (e) {
-          console.error("Errore caricamento Firebase:", e);
+          console.error("Errore caricamento Cloud, uso dati locali di fallback:", e);
+          const localData = localStorage.getItem("registro_backup_ale");
+          if (localData) db = JSON.parse(localData);
       }
-      window.render();
-  };
+      render();
+  }
 
-  window.saveDataToFirebase = async function() {
+  async function saveData() {
+      // Salvataggio di sicurezza locale immediato
+      localStorage.setItem("registro_backup_ale", JSON.stringify(db));
       try {
           const docRef = doc(dbCloud, "registro_data", "dati_voti");
           await setDoc(docRef, db);
       } catch (e) {
-          console.error("Errore salvataggio Firebase:", e);
+          console.error("Errore salvataggio Cloud:", e);
       }
-  };
+  }
 
-  window.hashPassword = async function(string) {
+  async function hashPassword(string) {
       const encoder = new TextEncoder();
       const data = encoder.encode(string);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
+  }
 
-  // Gestione modale password sicura e nascosta
   window.requestPassword = function(actionCallback) {
       pendingAction = actionCallback;
       document.getElementById("passwordModal").style.display = "flex";
@@ -83,7 +85,7 @@
 
   window.confirmPassword = async function() {
       const pwd = document.getElementById("modalPasswordInput").value;
-      const hashedInput = await window.hashPassword(pwd);
+      const hashedInput = await hashPassword(pwd);
       if (hashedInput !== SECRET_PASSWORD_HASH) {
           alert("❌ Password errata!");
           return;
@@ -96,24 +98,24 @@
       }
   };
 
-  window.parseGradeString = function(str) {
+  function parseGradeString(str) {
       str = str.trim();
       let base = parseFloat(str);
       if (isNaN(base)) return NaN;
       if (str.endsWith("+")) base += 0.25;
       else if (str.endsWith("-")) base -= 0.25;
       return base;
-  };
+  }
 
   window.changePeriod = function() {
       currentPeriod = document.getElementById("periodSelect").value;
-      window.render();
+      render();
   };
 
   window.switchSchoolYear = function() {
       db.currentYear = document.getElementById("schoolYearSelect").value;
-      window.saveDataToFirebase();
-      window.render();
+      saveData();
+      render();
   };
 
   window.verifyAndAdd = function() {
@@ -134,7 +136,7 @@
 
           const parts = rawInput.split(",");
           for (let part of parts) {
-              const val = window.parseGradeString(part);
+              const val = parseGradeString(part);
               if (isNaN(val) || val < 1 || val > 10) {
                   alert(`"${part}" non è valido! Usa numeri da 1 a 10 (es. 7.5 o 8+).`);
                   return;
@@ -157,14 +159,14 @@
               });
           }
 
-          await window.saveDataToFirebase();
+          await saveData();
           document.getElementById("gradeInput").value = "";
           document.getElementById("isLabInput").checked = false;
-          window.render();
+          render();
       });
   };
 
-  window.calculateWeightedAverage = function(grades) {
+  function calculateWeightedAverage(grades) {
       const valid = grades.filter(g => g.weight > 0);
       if (valid.length === 0) return { avg: 0, count: 0 };
       let sumProd = 0, sumWeight = 0;
@@ -173,23 +175,23 @@
           sumWeight += g.weight;
       });
       return { avg: sumProd / sumWeight, count: valid.length };
-  };
+  }
 
-  window.getGradeClass = function(val, weight) {
+  function getGradeClass(val, weight) {
       if (weight === 0) return "grade-blue";
       if (val >= 7) return "grade-dark-green";
       if (val >= 6) return "grade-light-green";
       if (val >= 5.5) return "grade-orange";
       return "grade-red";
-  };
+  }
 
   window.deleteGrade = function(subject, index) {
       window.requestPassword(async () => {
           const yData = db.years[db.currentYear][currentPeriod];
           yData[subject].splice(index, 1);
           if (yData[subject].length === 0) delete yData[subject];
-          await window.saveDataToFirebase();
-          window.render();
+          await saveData();
+          render();
       });
   };
 
@@ -197,8 +199,8 @@
       window.requestPassword(async () => {
           if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
               db.years[db.currentYear][currentPeriod] = {};
-              await window.saveDataToFirebase();
-              window.render();
+              await saveData();
+              render();
           }
       });
   };
@@ -214,14 +216,14 @@
               if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
                   db.years[nextYear] = { trimestre: {}, pentamestre: {} };
                   db.currentYear = nextYear;
-                  await window.saveDataToFirebase();
+                  await saveData();
               } else return;
           }
-          window.render();
+          render();
       });
   };
 
-  window.render = function() {
+  function render() {
       const yearSel = document.getElementById("schoolYearSelect");
       if (!yearSel) return;
       yearSel.innerHTML = "";
@@ -255,7 +257,7 @@
       subKeys.forEach(sub => {
           const grades = yData[sub];
           allGrades = allGrades.concat(grades);
-          const { avg, count } = window.calculateWeightedAverage(grades);
+          const { avg, count } = calculateWeightedAverage(grades);
 
           const card = document.createElement("div");
           card.className = "subject-card";
@@ -270,7 +272,7 @@
 
           grades.forEach((g, idx) => {
               const tag = document.createElement("div");
-              tag.className = `grade-tag ${window.getGradeClass(g.value, g.weight)}`;
+              tag.className = `grade-tag ${getGradeClass(g.value, g.weight)}`;
               
               let label = g.value.toString();
               if (g.weight === 0) label += " (0%)";
@@ -285,13 +287,13 @@
           list.appendChild(card);
       });
 
-      const genRes = window.calculateWeightedAverage(allGrades);
+      const genRes = calculateWeightedAverage(allGrades);
       general.textContent = genRes.count > 0 ? genRes.avg.toFixed(2) : "--";
       total.textContent = allGrades.length + " voti registrati in totale";
-  };
+  }
 
   window.addEventListener("DOMContentLoaded", () => {
-      window.loadDataFromFirebase();
+      loadData();
       
       document.getElementById("subjectSelect").addEventListener("change", function() {
           const sub = this.value;
@@ -322,444 +324,69 @@
     --success: #10b981;
 }
 
-* {
-    box-sizing: border-box;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body {
-    margin: 0;
-    background-color: var(--bg-base);
-    background-image: var(--bg-gradient);
-    color: var(--text-main);
-    min-height: 100vh;
-    padding: 24px 16px;
-    display: flex;
-    justify-content: center;
-}
-
-.container {
-    width: 100%;
-    max-width: 760px;
-    margin: 0 auto;
-}
-
-header {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.logo-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    padding: 6px 14px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #34d399;
-    margin-bottom: 12px;
-}
-
-h1 {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--text-main);
-    margin: 0 0 6px 0;
-}
-
-.subtitle {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin: 0;
-}
-
-.top-nav {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.select-wrapper {
-    position: relative;
-}
-
-select {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--text-main);
-    font-size: 14px;
-    font-weight: 600;
-    appearance: none;
-    cursor: pointer;
-    backdrop-filter: blur(12px);
-    outline: none;
-}
-
-select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
-.select-wrapper::after {
-    content: '▾';
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    pointer-events: none;
-}
-
-.hero-card {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    border-radius: 24px;
-    padding: 32px 20px;
-    text-align: center;
-    backdrop-filter: blur(16px);
-    margin-bottom: 20px;
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-    position: relative;
-    overflow: hidden;
-}
-
-.hero-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--accent));
-}
-
-.hero-title {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-    color: var(--accent);
-    margin-bottom: 8px;
-}
-
-.big-number {
-    font-size: 56px;
-    font-weight: 900;
-    letter-spacing: -1px;
-    line-height: 1;
-    margin: 6px 0 10px 0;
-    background: linear-gradient(to bottom right, #fff, #cbd5e1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.total-grades {
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 500;
-    margin: 0;
-}
-
-.panel {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    backdrop-filter: blur(16px);
-    padding: 24px;
-    border-radius: 24px;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
-}
-
-.panel-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 16px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-main);
-}
-
-.form-group {
-    margin-bottom: 12px;
-}
-
-input[type="text"] {
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--card-border);
-    background: rgba(10, 15, 25, 0.6);
-    color: var(--text-main);
-    font-size: 15px;
-    outline: none;
-}
-
-input[type="text"]:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.checkbox-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(10, 15, 25, 0.4);
-    border: 1px solid var(--card-border);
-    padding: 0 14px;
-    border-radius: 14px;
-    height: 50px;
-    cursor: pointer;
-}
-
-.checkbox-wrapper input {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary);
-    cursor: pointer;
-}
-
-.checkbox-wrapper label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-}
-
-button {
-    width: 100%;
-    padding: 14px 20px;
-    border-radius: 14px;
-    border: none;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: var(--primary);
-    color: white;
-    margin-top: 14px;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-}
-
-.btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
-}
-
-.btn-warning {
-    background: rgba(245, 158, 11, 0.15);
-    color: #fcd34d;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.btn-warning:hover {
-    background: var(--warning);
-    color: #000;
-}
-
-.btn-danger {
-    background: rgba(244, 63, 94, 0.12);
-    color: #fda4af;
-    border: 1px solid rgba(244, 63, 94, 0.25);
-}
-
-.btn-danger:hover {
-    background: var(--danger);
-    color: white;
-}
-
-.hint {
-    color: var(--text-muted);
-    font-size: 12px;
-    margin-top: 10px;
-    text-align: center;
-}
-
-.subject-card {
-    background: rgba(10, 15, 25, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    padding: 16px;
-    border-radius: 18px;
-    margin-top: 14px;
-}
-
-.subject-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.subject-title {
-    font-weight: 700;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.subject-avg {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--accent);
-}
-
-.grades-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.grade-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
-}
-
+* { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+body { margin: 0; background-color: var(--bg-base); background-image: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 24px 16px; display: flex; justify-content: center; }
+.container { width: 100%; max-width: 760px; margin: 0 auto; }
+header { text-align: center; margin-bottom: 24px; }
+.logo-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 600; color: #34d399; margin-bottom: 12px; }
+h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-main); margin: 0 0 6px 0; }
+.subtitle { color: var(--text-muted); font-size: 14px; margin: 0; }
+.top-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.select-wrapper { position: relative; }
+select { width: 100%; padding: 12px 16px; border-radius: 14px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-main); font-size: 14px; font-weight: 600; appearance: none; cursor: pointer; backdrop-filter: blur(12px); outline: none; }
+select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
+.select-wrapper::after { content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.hero-card { background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(56, 189, 248, 0.05) 100%); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 24px; padding: 32px 20px; text-align: center; backdrop-filter: blur(16px); margin-bottom: 20px; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
+.hero-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+.hero-title { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+.big-number { font-size: 56px; font-weight: 900; letter-spacing: -1px; line-height: 1; margin: 6px 0 10px 0; background: linear-gradient(to bottom right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.total-grades { color: var(--text-muted); font-size: 13px; font-weight: 500; margin: 0; }
+.panel { background: var(--card-bg); border: 1px solid var(--card-border); backdrop-filter: blur(16px); padding: 24px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3); }
+.panel-title { font-size: 16px; font-weight: 700; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
+.form-group { margin-bottom: 12px; }
+input[type="text"] { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--card-border); background: rgba(10, 15, 25, 0.6); color: var(--text-main); font-size: 15px; outline: none; }
+input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.checkbox-wrapper { display: flex; align-items: center; gap: 10px; background: rgba(10, 15, 25, 0.4); border: 1px solid var(--card-border); padding: 0 14px; border-radius: 14px; height: 50px; cursor: pointer; }
+.checkbox-wrapper input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+.checkbox-wrapper label { font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+button { width: 100%; padding: 14px 20px; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary { background: var(--primary); color: white; margin-top: 14px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4); }
+.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6); }
+.btn-warning { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+.btn-warning:hover { background: var(--warning); color: #000; }
+.btn-danger { background: rgba(244, 63, 94, 0.12); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.25); }
+.btn-danger:hover { background: var(--danger); color: white; }
+.hint { color: var(--text-muted); font-size: 12px; margin-top: 10px; text-align: center; }
+.subject-card { background: rgba(10, 15, 25, 0.45); border: 1px solid rgba(255, 255, 255, 0.04); padding: 16px; border-radius: 18px; margin-top: 14px; }
+.subject-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.subject-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.subject-avg { font-size: 18px; font-weight: 800; color: var(--accent); }
+.grades-container { display: flex; flex-wrap: wrap; gap: 8px; }
+.grade-tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; }
 .grade-dark-green { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }
 .grade-light-green { background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); color: #6ee7b7; }
 .grade-orange { background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
 .grade-red { background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; }
 .grade-blue { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; }
-
-.lab-label {
-    font-size: 9px;
-    background: rgba(255,255,255,0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.delete-badge {
-    background: none;
-    border: none;
-    color: inherit;
-    opacity: 0.6;
-    cursor: pointer;
-    font-size: 15px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.delete-badge:hover {
-    opacity: 1;
-}
-
-.empty-box {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 24px 0;
-    font-size: 14px;
-}
-
-.actions-footer {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 24px;
-}
+.lab-label { font-size: 9px; background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.delete-badge { background: none; border: none; color: inherit; opacity: 0.6; cursor: pointer; font-size: 15px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.delete-badge:hover { opacity: 1; }
+.empty-box { text-align: center; color: var(--text-muted); padding: 24px 0; font-size: 14px; }
+.actions-footer { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
 
 /* Modale Password Nascosta */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(7, 9, 14, 0.85);
-    backdrop-filter: blur(8px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 16px;
-}
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+.modal-box { background: #121826; border: 1px solid rgba(99, 102, 241, 0.3); padding: 24px; border-radius: 20px; width: 100%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+.modal-box h3 { margin: 0 0 8px 0; font-size: 18px; color: var(--text-main); }
+.modal-box p { color: var(--text-muted); font-size: 13px; margin: 0 0 16px 0; }
+.modal-box input[type="password"] { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--card-border); background: rgba(10, 15, 25, 0.8); color: var(--text-main); font-size: 16px; outline: none; margin-bottom: 16px; }
+.modal-box input[type="password"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
+.modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-secondary { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--card-border); }
+.btn-secondary:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
 
-.modal-box {
-    background: #121826;
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    padding: 24px;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-}
-
-.modal-box h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    color: var(--text-main);
-}
-
-.modal-box p {
-    color: var(--text-muted);
-    font-size: 13px;
-    margin: 0 0 16px 0;
-}
-
-.modal-box input[type="password"] {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--card-border);
-    background: rgba(10, 15, 25, 0.8);
-    color: var(--text-main);
-    font-size: 16px;
-    outline: none;
-    margin-bottom: 16px;
-}
-
-.modal-box input[type="password"]:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
-.modal-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.btn-secondary {
-    background: rgba(255,255,255,0.05);
-    color: var(--text-muted);
-    border: 1px solid var(--card-border);
-}
-
-.btn-secondary:hover {
-    background: rgba(255,255,255,0.1);
-    color: var(--text-main);
-}
-
-@media(max-width: 480px) {
-    body { padding: 12px 8px; }
-    .big-number { font-size: 46px; }
-    .form-row { grid-template-columns: 1fr; }
-}
+@media(max-width: 480px) { body { padding: 12px 8px; } .big-number { font-size: 46px; } .form-row { grid-template-columns: 1fr; } }
 </style>
 </head>
 
@@ -779,22 +406,21 @@ button {
 </div>
 
 <div class="container">
-
     <header>
-        <div class="logo-badge">☁️ Firebase Cloud Connesso</div>
+        <div class="logo-badge">☁️ Firebase Cloud + Backup Locale</div>
         <h1>Registro Scolastico</h1>
         <p class="subtitle" id="currentYearDisplay">Anno 2025/2026</p>
     </header>
 
     <div class="top-nav">
         <div class="select-wrapper">
-            <select id="periodSelect" onchange="window.changePeriod()">
+            <select id="periodSelect" onchange="changePeriod()">
                 <option value="trimestre">📅 Trimestre</option>
                 <option value="pentamestre">📅 Pentamestre</option>
             </select>
         </div>
         <div class="select-wrapper">
-            <select id="schoolYearSelect" onchange="window.switchSchoolYear()"></select>
+            <select id="schoolYearSelect" onchange="switchSchoolYear()"></select>
         </div>
     </div>
 
@@ -844,22 +470,21 @@ button {
             </div>
         </div>
 
-        <button class="btn-primary" onclick="window.verifyAndAdd()">➕ Aggiungi al Registro</button>
+        <button class="btn-primary" onclick="verifyAndAdd()">➕ Aggiungi al Registro</button>
         <p class="hint">🔒 Protetto con password cifrata.</p>
     </div>
 
     <div class="panel">
         <div class="panel-title">📊 Situazione Materie</div>
         <div id="subjectsList">
-            <div class="empty-box">Caricamento voti dal Cloud...</div>
+            <div class="empty-box">Caricamento voti...</div>
         </div>
     </div>
 
     <div class="actions-footer">
-        <button class="btn-warning" onclick="window.startNewYear()">🎓 Passa al Prossimo Anno Scolastico</button>
-        <button class="btn-danger" onclick="window.verifyAndReset()">🗑️ Elimina Voti del Periodo Corrente</button>
+        <button class="btn-warning" onclick="startNewYear()">🎓 Passa al Prossimo Anno Scolastico</button>
+        <button class="btn-danger" onclick="verifyAndReset()">🗑️ Elimina Voti del Periodo Corrente</button>
     </div>
-
 </div>
 
 </body>
