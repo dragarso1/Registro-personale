@@ -24,7 +24,8 @@
   const app = initializeApp(firebaseConfig);
   const dbCloud = getFirestore(app);
 
-  const SECRET_PASSWORD_HASH = "b7a3560737f2a1b1897d287042afb7931f6e2ec9079dd21ff3c43425cb0aeec2";
+  // Hash SHA-256 della stringa "password"
+  const SECRET_PASSWORD_HASH = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
   const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
   let db = {
