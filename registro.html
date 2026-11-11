@@ -38,45 +38,28 @@
   let pendingAction = null;
 
   async function loadData() {
-      const statusBadge = document.getElementById("cloudStatus");
-      statusBadge.textContent = "⏳ Connessione al Cloud...";
       try {
           const docRef = doc(dbCloud, "registro_data", "dati_voti");
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
               db = docSnap.data();
-              statusBadge.textContent = "☁️ Sincronizzato con il Cloud";
-              statusBadge.style.color = "#34d399";
-          } else {
-              statusBadge.textContent = "⚠️ Nessun dato sul Cloud (Crea il primo voto)";
-              statusBadge.style.color = "#fbbf24";
           }
       } catch (e) {
-          console.error("Errore caricamento Cloud:", e);
-          statusBadge.textContent = "❌ Errore Cloud (Controllo regole Firebase)";
-          statusBadge.style.color = "#f43f5e";
-          // Fallback locale se fallisce
+          console.error("Errore caricamento Cloud, uso dati locali di fallback:", e);
           const localData = localStorage.getItem("registro_backup_ale");
           if (localData) db = JSON.parse(localData);
       }
       render();
   }
 
-  window.forceReload = function() {
-      loadData();
-      alert("🔄 Sincronizzazione con il cloud avviata!");
-  };
-
   async function saveData() {
+      // Salvataggio di sicurezza locale immediato
       localStorage.setItem("registro_backup_ale", JSON.stringify(db));
       try {
           const docRef = doc(dbCloud, "registro_data", "dati_voti");
           await setDoc(docRef, db);
-          document.getElementById("cloudStatus").textContent = "☁️ Sincronizzato con il Cloud";
-          document.getElementById("cloudStatus").style.color = "#34d399";
       } catch (e) {
           console.error("Errore salvataggio Cloud:", e);
-          alert("⚠️ Salvato in locale, ma errore di scrittura su Firebase. Controlla le regole Firestore!");
       }
   }
 
@@ -345,8 +328,7 @@
 body { margin: 0; background-color: var(--bg-base); background-image: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 24px 16px; display: flex; justify-content: center; }
 .container { width: 100%; max-width: 760px; margin: 0 auto; }
 header { text-align: center; margin-bottom: 24px; }
-.logo-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 600; color: #34d399; margin-bottom: 12px; cursor: pointer; }
-.logo-badge:hover { background: rgba(16, 185, 129, 0.2); }
+.logo-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 600; color: #34d399; margin-bottom: 12px; }
 h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-main); margin: 0 0 6px 0; }
 .subtitle { color: var(--text-muted); font-size: 14px; margin: 0; }
 .top-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
@@ -425,8 +407,7 @@ button { width: 100%; padding: 14px 20px; border-radius: 14px; border: none; fon
 
 <div class="container">
     <header>
-        <!-- Clicca su questo badge sul telefono per forzare la ricarica dal cloud -->
-        <div class="logo-badge" id="cloudStatus" onclick="forceReload()" title="Clicca per ricaricare dal cloud">⏳ Connessione al Cloud...</div>
+        <div class="logo-badge">☁️ Firebase Cloud + Backup Locale</div>
         <h1>Registro Scolastico</h1>
         <p class="subtitle" id="currentYearDisplay">Anno 2025/2026</p>
     </header>
@@ -495,7 +476,7 @@ button { width: 100%; padding: 14px 20px; border-radius: 14px; border: none; fon
 
     <div class="panel">
         <div class="panel-title">📊 Situazione Materie</div>
-        div id="subjectsList">
+        <div id="subjectsList">
             <div class="empty-box">Caricamento voti...</div>
         </div>
     </div>
