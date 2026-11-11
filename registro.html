@@ -24,7 +24,6 @@
   const app = initializeApp(firebaseConfig);
   const dbCloud = getFirestore(app);
 
-  // Hash SHA-256 della stringa "password"
   const SECRET_PASSWORD_HASH = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
   const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
@@ -47,7 +46,7 @@
       } catch (e) {
           console.error("Errore caricamento Firebase:", e);
       }
-      render();
+      window.render();
   };
 
   window.saveDataToFirebase = async function() {
@@ -65,7 +64,7 @@
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
+  };
 
   window.checkPassword = async function() {
       const pwd = prompt("🔐 Inserisci la password segreta:");
@@ -76,7 +75,7 @@
           return false;
       }
       return true;
-  }
+  };
 
   window.parseGradeString = function(str) {
       str = str.trim();
@@ -85,18 +84,18 @@
       if (str.endsWith("+")) base += 0.25;
       else if (str.endsWith("-")) base -= 0.25;
       return base;
-  }
+  };
 
   window.changePeriod = function() {
       currentPeriod = document.getElementById("periodSelect").value;
-      render();
-  }
+      window.render();
+  };
 
   window.switchSchoolYear = function() {
       db.currentYear = document.getElementById("schoolYearSelect").value;
       window.saveDataToFirebase();
-      render();
-  }
+      window.render();
+  };
 
   window.verifyAndAdd = async function() {
       if (!await window.checkPassword()) return;
@@ -123,6 +122,13 @@
               return;
           }
 
+          if (!db.years[db.currentYear]) {
+              db.years[db.currentYear] = { trimestre: {}, pentamestre: {} };
+          }
+          if (!db.years[db.currentYear][currentPeriod]) {
+              db.years[db.currentYear][currentPeriod] = {};
+          }
+
           const yData = db.years[db.currentYear][currentPeriod];
           if (!yData[subject]) yData[subject] = [];
 
@@ -136,8 +142,8 @@
       await window.saveDataToFirebase();
       document.getElementById("gradeInput").value = "";
       document.getElementById("isLabInput").checked = false;
-      render();
-  }
+      window.render();
+  };
 
   window.calculateWeightedAverage = function(grades) {
       const valid = grades.filter(g => g.weight > 0);
@@ -148,7 +154,7 @@
           sumWeight += g.weight;
       });
       return { avg: sumProd / sumWeight, count: valid.length };
-  }
+  };
 
   window.getGradeClass = function(val, weight) {
       if (weight === 0) return "grade-blue";
@@ -156,7 +162,7 @@
       if (val >= 6) return "grade-light-green";
       if (val >= 5.5) return "grade-orange";
       return "grade-red";
-  }
+  };
 
   window.deleteGrade = async function(subject, index) {
       if (!await window.checkPassword()) return;
@@ -164,17 +170,17 @@
       yData[subject].splice(index, 1);
       if (yData[subject].length === 0) delete yData[subject];
       await window.saveDataToFirebase();
-      render();
-  }
+      window.render();
+  };
 
   window.verifyAndReset = async function() {
       if (!await window.checkPassword()) return;
       if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
           db.years[db.currentYear][currentPeriod] = {};
           await window.saveDataToFirebase();
-          render();
+          window.render();
       }
-  }
+  };
 
   window.startNewYear = async function() {
       if (!await window.checkPassword()) return;
@@ -190,8 +196,8 @@
               await window.saveDataToFirebase();
           } else return;
       }
-      render();
-  }
+      window.render();
+  };
 
   window.render = function() {
       const yearSel = document.getElementById("schoolYearSelect");
@@ -213,7 +219,7 @@
       const total = document.getElementById("totalGrades");
 
       list.innerHTML = "";
-      const yData = db.years[db.currentYear][currentPeriod];
+      const yData = db.years[db.currentYear] ? db.years[db.currentYear][currentPeriod] || {} : {};
       const subKeys = Object.keys(yData);
 
       if (subKeys.length === 0) {
@@ -260,7 +266,7 @@
       const genRes = window.calculateWeightedAverage(allGrades);
       general.textContent = genRes.count > 0 ? genRes.avg.toFixed(2) : "--";
       total.textContent = allGrades.length + " voti registrati in totale";
-  }
+  };
 
   window.addEventListener("DOMContentLoaded", () => {
       window.loadDataFromFirebase();
@@ -678,13 +684,13 @@ button {
 
     <div class="top-nav">
         <div class="select-wrapper">
-            <select id="periodSelect" onchange="changePeriod()">
+            <select id="periodSelect" onchange="window.changePeriod()">
                 <option value="trimestre">📅 Trimestre</option>
                 <option value="pentamestre">📅 Pentamestre</option>
             </select>
         </div>
         <div class="select-wrapper">
-            <select id="schoolYearSelect" onchange="switchSchoolYear()"></select>
+            <select id="schoolYearSelect" onchange="window.switchSchoolYear()"></select>
         </div>
     </div>
 
@@ -734,7 +740,7 @@ button {
             </div>
         </div>
 
-        <button class="btn-primary" onclick="verifyAndAdd()">➕ Aggiungi al Registro</button>
+        <button class="btn-primary" onclick="window.verifyAndAdd()">➕ Aggiungi al Registro</button>
         <p class="hint">🔒 Protetto con password cifrata.</p>
     </div>
 
@@ -746,8 +752,8 @@ button {
     </div>
 
     <div class="actions-footer">
-        <button class="btn-warning" onclick="startNewYear()">🎓 Passa al Prossimo Anno Scolastico</button>
-        <button class="btn-danger" onclick="verifyAndReset()">🗑️ Elimina Voti del Periodo Corrente</button>
+        <button class="btn-warning" onclick="window.startNewYear()">🎓 Passa al Prossimo Anno Scolastico</button>
+        <button class="btn-danger" onclick="window.verifyAndReset()">🗑️ Elimina Voti del Periodo Corrente</button>
     </div>
 
 </div>
