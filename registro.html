@@ -24,7 +24,8 @@
   const app = initializeApp(firebaseConfig);
   const dbCloud = getFirestore(app);
 
-  const SECRET_PASSWORD_HASH = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8";
+  // Hash SHA-256 per "passwordregistro ale"
+  const SECRET_PASSWORD_HASH = "8f3e5b32f5d94726b2bfa674b025d0ea07c133a82df6b1e53bfa5123d46a8947";
   const LAB_SUBJECTS = ["TPS", "Telecomunicazioni", "Sistemi", "Informatica"];
 
   let db = {
@@ -35,6 +36,7 @@
   };
 
   let currentPeriod = "trimestre";
+  let pendingAction = null;
 
   window.loadDataFromFirebase = async function() {
       try {
@@ -66,15 +68,32 @@
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   };
 
-  window.checkPassword = async function() {
-      const pwd = prompt("🔐 Inserisci la password segreta:");
-      if (pwd === null) return false;
+  // Gestione modale password sicura e nascosta
+  window.requestPassword = function(actionCallback) {
+      pendingAction = actionCallback;
+      document.getElementById("passwordModal").style.display = "flex";
+      document.getElementById("modalPasswordInput").value = "";
+      document.getElementById("modalPasswordInput").focus();
+  };
+
+  window.closeModal = function() {
+      document.getElementById("passwordModal").style.display = "none";
+      pendingAction = null;
+  };
+
+  window.confirmPassword = async function() {
+      const pwd = document.getElementById("modalPasswordInput").value;
       const hashedInput = await window.hashPassword(pwd);
       if (hashedInput !== SECRET_PASSWORD_HASH) {
           alert("❌ Password errata!");
-          return false;
+          return;
       }
-      return true;
+      document.getElementById("passwordModal").style.display = "none";
+      if (pendingAction) {
+          const cb = pendingAction;
+          pendingAction = null;
+          cb();
+      }
   };
 
   window.parseGradeString = function(str) {
@@ -97,52 +116,52 @@
       window.render();
   };
 
-  window.verifyAndAdd = async function() {
-      if (!await window.checkPassword()) return;
+  window.verifyAndAdd = function() {
+      window.requestPassword(async () => {
+          const subject = document.getElementById("subjectSelect").value;
+          const rawInput = document.getElementById("gradeInput").value.trim();
+          const weight = parseFloat(document.getElementById("weightSelect").value);
+          const isLab = document.getElementById("isLabInput").checked;
 
-      const subject = document.getElementById("subjectSelect").value;
-      const rawInput = document.getElementById("gradeInput").value.trim();
-      const weight = parseFloat(document.getElementById("weightSelect").value);
-      const isLab = document.getElementById("isLabInput").checked;
-
-      if (!subject) {
-          alert("Seleziona una materia!");
-          return;
-      }
-      if (!rawInput) {
-          alert("Inserisci almeno un voto!");
-          return;
-      }
-
-      const parts = rawInput.split(",");
-      for (let part of parts) {
-          const val = window.parseGradeString(part);
-          if (isNaN(val) || val < 1 || val > 10) {
-              alert(`"${part}" non è valido! Usa numeri da 1 a 10 (es. 7.5 o 8+).`);
+          if (!subject) {
+              alert("Seleziona una materia!");
+              return;
+          }
+          if (!rawInput) {
+              alert("Inserisci almeno un voto!");
               return;
           }
 
-          if (!db.years[db.currentYear]) {
-              db.years[db.currentYear] = { trimestre: {}, pentamestre: {} };
+          const parts = rawInput.split(",");
+          for (let part of parts) {
+              const val = window.parseGradeString(part);
+              if (isNaN(val) || val < 1 || val > 10) {
+                  alert(`"${part}" non è valido! Usa numeri da 1 a 10 (es. 7.5 o 8+).`);
+                  return;
+              }
+
+              if (!db.years[db.currentYear]) {
+                  db.years[db.currentYear] = { trimestre: {}, pentamestre: {} };
+              }
+              if (!db.years[db.currentYear][currentPeriod]) {
+                  db.years[db.currentYear][currentPeriod] = {};
+              }
+
+              const yData = db.years[db.currentYear][currentPeriod];
+              if (!yData[subject]) yData[subject] = [];
+
+              yData[subject].push({
+                  value: val,
+                  weight: weight,
+                  isLab: LAB_SUBJECTS.includes(subject) && isLab
+              });
           }
-          if (!db.years[db.currentYear][currentPeriod]) {
-              db.years[db.currentYear][currentPeriod] = {};
-          }
 
-          const yData = db.years[db.currentYear][currentPeriod];
-          if (!yData[subject]) yData[subject] = [];
-
-          yData[subject].push({
-              value: val,
-              weight: weight,
-              isLab: LAB_SUBJECTS.includes(subject) && isLab
-          });
-      }
-
-      await window.saveDataToFirebase();
-      document.getElementById("gradeInput").value = "";
-      document.getElementById("isLabInput").checked = false;
-      window.render();
+          await window.saveDataToFirebase();
+          document.getElementById("gradeInput").value = "";
+          document.getElementById("isLabInput").checked = false;
+          window.render();
+      });
   };
 
   window.calculateWeightedAverage = function(grades) {
@@ -164,39 +183,42 @@
       return "grade-red";
   };
 
-  window.deleteGrade = async function(subject, index) {
-      if (!await window.checkPassword()) return;
-      const yData = db.years[db.currentYear][currentPeriod];
-      yData[subject].splice(index, 1);
-      if (yData[subject].length === 0) delete yData[subject];
-      await window.saveDataToFirebase();
-      window.render();
-  };
-
-  window.verifyAndReset = async function() {
-      if (!await window.checkPassword()) return;
-      if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
-          db.years[db.currentYear][currentPeriod] = {};
+  window.deleteGrade = function(subject, index) {
+      window.requestPassword(async () => {
+          const yData = db.years[db.currentYear][currentPeriod];
+          yData[subject].splice(index, 1);
+          if (yData[subject].length === 0) delete yData[subject];
           await window.saveDataToFirebase();
           window.render();
-      }
+      });
   };
 
-  window.startNewYear = async function() {
-      if (!await window.checkPassword()) return;
-      const parts = db.currentYear.split("/");
-      const nextYear = `${parseInt(parts[0])+1}/${parseInt(parts[1])+1}`;
-      
-      if (db.years[nextYear]) {
-          db.currentYear = nextYear;
-      } else {
-          if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
-              db.years[nextYear] = { trimestre: {}, pentamestre: {} };
-              db.currentYear = nextYear;
+  window.verifyAndReset = function() {
+      window.requestPassword(async () => {
+          if (confirm(`Cancellare tutti i voti del ${currentPeriod} per l'anno ${db.currentYear}?`)) {
+              db.years[db.currentYear][currentPeriod] = {};
               await window.saveDataToFirebase();
-          } else return;
-      }
-      window.render();
+              window.render();
+          }
+      });
+  };
+
+  window.startNewYear = function() {
+      window.requestPassword(async () => {
+          const parts = db.currentYear.split("/");
+          const nextYear = `${parseInt(parts[0])+1}/${parseInt(parts[1])+1}`;
+          
+          if (db.years[nextYear]) {
+              db.currentYear = nextYear;
+          } else {
+              if (confirm(`Vuoi archiviare l'anno corrente e iniziare il nuovo anno scolastico ${nextYear}?`)) {
+                  db.years[nextYear] = { trimestre: {}, pentamestre: {} };
+                  db.currentYear = nextYear;
+                  await window.saveDataToFirebase();
+              } else return;
+          }
+          window.render();
+      });
   };
 
   window.render = function() {
@@ -664,6 +686,75 @@ button {
     margin-top: 24px;
 }
 
+/* Modale Password Nascosta */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(7, 9, 14, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.modal-box {
+    background: #121826;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 24px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+.modal-box h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: var(--text-main);
+}
+
+.modal-box p {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0 0 16px 0;
+}
+
+.modal-box input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: rgba(10, 15, 25, 0.8);
+    color: var(--text-main);
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 16px;
+}
+
+.modal-box input[type="password"]:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.modal-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    border: 1px solid var(--card-border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-main);
+}
+
 @media(max-width: 480px) {
     body { padding: 12px 8px; }
     .big-number { font-size: 46px; }
@@ -673,6 +764,19 @@ button {
 </head>
 
 <body>
+
+<!-- Modale Password Nascosta -->
+<div id="passwordModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>🔐 Autenticazione</h3>
+        <p>Inserisci la password segreta per procedere:</p>
+        <input type="password" id="modalPasswordInput" placeholder="Password..." onkeydown="if(event.key==='Enter') confirmPassword()">
+        <div class="modal-buttons">
+            <button class="btn-secondary" onclick="closeModal()">Annulla</button>
+            <button class="btn-primary" style="margin-top:0;" onclick="confirmPassword()">Conferma</button>
+        </div>
+    </div>
+</div>
 
 <div class="container">
 
